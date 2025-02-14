@@ -1,22 +1,17 @@
-FROM python:3.13-slim as base
-
-RUN apt update && apt install -y \
-    ffmpeg \
-    && apt clean && rm -rf /var/lib/apt/lists/*
+FROM python:3.13-slim
 
 RUN pip install poetry
 
-ENV POETRY_VIRTUALENVS_IN_PROJECT=true \
-    POETRY_NO_INTERACTION=1
+ENV RUN poetry config virtualenvs.in-project True --local
 
 WORKDIR /app
 
 COPY pyproject.toml ./
 
-RUN poetry install --no-root --without test,docs
+RUN poetry install --no-root --no-interaction --without test,docs
 
 COPY . .
 
 EXPOSE 8061
 
-CMD ["poetry", "run", "start.py"]
+CMD ["poetry", "run", "python", "start.py"]
