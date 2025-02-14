@@ -9,7 +9,8 @@ license = {text = "LICENSE"}
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "fastapi (>=0.115.8,<0.116.0)"
+    "fastapi (>=0.115.8,<0.116.0)",
+    "uvicorn (>=0.34.0,<0.35.0)"
 ]
 
 [tool.poetry.group.test.dependencies]
