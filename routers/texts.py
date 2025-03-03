@@ -1,10 +1,14 @@
+from typing import List
+
 from fastapi import APIRouter, Path
+
+from schemas.texts import TextResponse
 
 router = APIRouter("/texts")
 
 
 @router.get("")
-def list_texts():
+def list_texts() -> List[TextResponse]:
     """Возвращает список всех текстов, загруженных в систему."""
     pass
 

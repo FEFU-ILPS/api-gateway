@@ -1,5 +1,6 @@
-from fastapi import APIRouter, File, UploadFile
 from uuid import UUID
+
+from fastapi import APIRouter, File, UploadFile
 
 router = APIRouter("/audio")
 
