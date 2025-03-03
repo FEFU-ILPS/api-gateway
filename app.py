@@ -2,20 +2,18 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from .routes import health_router
-import os
-from config import configs
+from routers import health_router, auth_router
 
 
 @asynccontextmanager
 async def server_lifespan(app: FastAPI):
     # До запуска приложения
-    os.makedirs(configs.upload.DIR, exist_ok=True)
 
     yield
 
     # После запуска
 
 
-server = FastAPI(lifespan=server_lifespan)
-server.include_router(health_router)
+app = FastAPI(lifespan=server_lifespan)
+app.include_router(health_router)
+app.include_router(auth_router)
