@@ -2,7 +2,7 @@ from fastapi import APIRouter, Body
 
 from schemas.auth import AuthRequest, AuthResponse
 
-router = APIRouter("/auth")
+router = APIRouter(prefix="/auth")
 
 
 @router.get("", summary="Authenticate User", tags=["Auth"])

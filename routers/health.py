@@ -5,7 +5,7 @@ import socket
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 
-router = APIRouter("/health")
+router = APIRouter(prefix="/health")
 
 
 @router.get(path="", summary="Health Check", tags=["Health"])

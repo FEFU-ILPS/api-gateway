@@ -4,7 +4,7 @@ from fastapi import APIRouter, Path
 
 from schemas.texts import TextResponse
 
-router = APIRouter("/texts")
+router = APIRouter(prefix="/texts")
 
 
 @router.get("")
