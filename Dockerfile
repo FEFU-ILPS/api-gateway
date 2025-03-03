@@ -12,4 +12,4 @@ COPY . .
 
 EXPOSE 8061
 
-CMD ["poetry", "run", "python", "start.py"]
+CMD ["poetry", "run", "python", "app.py"]
