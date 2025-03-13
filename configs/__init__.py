@@ -3,7 +3,7 @@ from .services import ServicesConfiguration
 
 
 class ProjectConfiguration(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="BACKEND_")
+    model_config = SettingsConfigDict(env_prefix="GATEWAY_")
 
     # * Вложенные группы настроек
     services: ServicesConfiguration = ServicesConfiguration()
