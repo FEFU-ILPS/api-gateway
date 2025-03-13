@@ -8,6 +8,13 @@ class ServiceConfiguration(BaseSettings):
     HOST: str
     PORT: int
 
+    # * Опциональные переменные
+    PROTOCOL: str = "http"
+
+    @property
+    def URL(self) -> str:
+        return f"{self.PROTOCOL}://{self.HOST}:{self.PORT}/"
+
 
 def get_service_configuration(service_name: str) -> ServiceConfiguration:
     env_namespace = f"BACKEND_SERVICE_{service_name.upper()}_"
