@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 
-from config import configs
+from configs import configs
 from routers import audio_router, auth_router, health_router, text_router
 
 
