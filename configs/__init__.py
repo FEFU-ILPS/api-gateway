@@ -6,10 +6,11 @@ class ProjectConfiguration(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="BACKEND_")
 
     # * Вложенные группы настроек
-    service: ServicesConfiguration = ServicesConfiguration()
+    services: ServicesConfiguration = ServicesConfiguration()
 
     # * Опциональные переменные
     DEBUG_MODE: bool = False
+    SERVICE_NAME: str = "ilps-backend-api-gateway"
 
 
 configs = ProjectConfiguration()
