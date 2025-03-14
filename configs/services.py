@@ -2,8 +2,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class ServiceConfiguration(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="SERVICE")
-
     # ! Обязательные переменные
     HOST: str
     PORT: int
@@ -13,7 +11,7 @@ class ServiceConfiguration(BaseSettings):
 
     @property
     def URL(self) -> str:
-        return f"{self.PROTOCOL}://{self.HOST}:{self.PORT}/"
+        return f"{self.PROTOCOL}://{self.HOST}:{self.PORT}"
 
 
 def get_service_configuration(service_name: str) -> ServiceConfiguration:
@@ -26,7 +24,7 @@ def get_service_configuration(service_name: str) -> ServiceConfiguration:
 
 
 class ServicesConfiguration(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="BACKEND_SERVICE_")
+    model_config = SettingsConfigDict(env_prefix="GATEWAY_SERVICE_")
 
     # * Вложенные группы настроек
     auth: ServiceConfiguration = get_service_configuration("auth")
