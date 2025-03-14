@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class AuthenticateUserRequest(BaseModel):
-    name: Annotated[str, Body(max_length=255, examples=["nagibator_rus"])]
+    username: Annotated[str, Body(max_length=255, examples=["nagibator_rus"])]
     password: Annotated[str, Body(max_length=40, min_length=8, examples=["!Password123"])]
 
 
@@ -17,9 +17,9 @@ class AuthenticateUserResponse(BaseModel):
 
 
 class RegisterUserRequest(BaseModel):
-    name: Annotated[str, Field(..., max_length=255, examples=["nagibator_rus"])]
-    email: Annotated[str, Field(..., max_length=255, examples=["email@example.com"])]
-    password: Annotated[str, Field(max_length=40, min_length=8, examples=["!Password123"])]
+    name: Annotated[str, Body(..., max_length=255, examples=["nagibator_rus"])]
+    email: Annotated[str, Body(..., max_length=255, examples=["email@example.com"])]
+    password: Annotated[str, Body(max_length=40, min_length=8, examples=["!Password123"])]
 
     @field_validator("email")
     def validate_email(cls, value):
@@ -45,3 +45,9 @@ class RegisterUserRequest(BaseModel):
 class RegisterUserResponse(BaseModel):
     id: Annotated[UUID, Field(..., examples=["16fd2706-8baf-433b-82eb-8c7fada847da"])]
     name: Annotated[str, Field(..., max_length=255, examples=["nagibator_rus"])]
+
+
+class AuthorizedUser(BaseModel):
+    id: Annotated[UUID, Field(..., examples=["16fd2706-8baf-433b-82eb-8c7fada847da"])]
+    name: Annotated[str, Field(..., max_length=255, examples=["nagibator_rus"])]
+    is_admin: Annotated[bool, Field(..., examples=["False"])]
