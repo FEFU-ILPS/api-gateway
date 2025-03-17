@@ -1,6 +1,6 @@
 FROM python:3.13-slim
 
-RUN pip install poetry && poetry config virtualenvs.in-project True --local
+RUN pip install poetry && poetry config virtualenvs.in-project true --local
 
 WORKDIR /app
 
