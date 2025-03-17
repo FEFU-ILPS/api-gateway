@@ -1,15 +1,15 @@
 FROM python:3.13-slim
 
-RUN pip install poetry && poetry config virtualenvs.in-project true --local
+RUN pip install poetry && poetry config virtualenvs.create false
 
 WORKDIR /app
 
 COPY pyproject.toml ./
 
-RUN poetry install --no-root --no-interaction --without test,docs
+RUN poetry install --only main --no-interaction --no-ansi --no-root
 
 COPY . .
 
 EXPOSE 8061
 
-CMD ["poetry", "run", "python", "app.py"]
+CMD ["python", "start.py"]
