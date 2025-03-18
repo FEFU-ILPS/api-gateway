@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse
 router = APIRouter(prefix="/health")
 
 
-@router.get(path="", summary="Health Check", tags=["Health"])
+@router.get(path="", summary="Проверка состояния", tags=["Health"])
 async def health_check() -> JSONResponse:
     """Подтверждает работоспособность сервиса, отправляя данные о текущей хост-системе."""
     try:
