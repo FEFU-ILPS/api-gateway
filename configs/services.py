@@ -26,3 +26,4 @@ def get_service_configuration(service_name: str) -> ServiceConfiguration:
 class ServicesConfiguration(BaseSettings):
     # * Вложенные группы настроек
     auth: ServiceConfiguration = get_service_configuration("auth")
+    texts: ServiceConfiguration = get_service_configuration("texts")
