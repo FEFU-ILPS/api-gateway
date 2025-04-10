@@ -77,7 +77,7 @@ class UpdateLearningTextRequest(BaseModel):
     title: Optional[TextTitle] = None
     difficulty: Optional[TextDifficulty] = None
     preview: Optional[TextPreview] = None
-    value: Optional[TextValue]
+    value: Optional[TextValue] = None
     transcription: Optional[TextTranscription] = None
 
 
