@@ -62,7 +62,7 @@ async def create_text(
         try:
             response = await client.post(
                 f"{configs.services.texts.URL}/",
-                content=data.model_dump(exclude_none=True),
+                content=data.model_dump_json(exclude_none=True),
             )
             response.raise_for_status()
 
@@ -103,7 +103,7 @@ async def update_text(
         try:
             response = await client.patch(
                 f"{configs.services.texts.URL}/{uuid}",
-                content=data.model_dump(exclude_none=True),
+                content=data.model_dump_json(exclude_none=True),
             )
             response.raise_for_status()
 
