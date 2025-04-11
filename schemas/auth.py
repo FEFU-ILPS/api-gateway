@@ -4,14 +4,38 @@ from uuid import UUID
 
 from fastapi import Body
 from pydantic import BaseModel, Field, field_validator
+from .examples.auth import (
+    ID_EXAMPLES,
+    NAME_EXAMPLES,
+    EMAIL_EXAMPLES,
+    PASSWORD_EXAMPLES,
+    JWT_ACCESS_TOKEN_EXAMPLES,
+    JWT_TOKEN_TYPE_EXAMPLES,
+    FLAG_EXAMPLES,
+)
 
-UserID = Annotated[UUID, Field(..., examples=["16fd2706-8baf-433b-82eb-8c7fada847da"])]
-UserName = Annotated[str, Body(max_length=255, examples=["nagibator_rus"])]
-UserEmail = Annotated[str, Body(max_length=40, min_length=8, examples=["!Password123"])]
-UserPassword = Annotated[str, Body(max_length=40, min_length=8, examples=["!Password123"])]
-JWTAccessToken = Annotated[str, Field(...)]
-JWTTokenType = Annotated[str, Field(default="Bearer")]
-Flag = Annotated[bool, Field(..., examples=["False"])]
+Flag = Annotated[bool, Field(examples=FLAG_EXAMPLES)]
+UserID = Annotated[UUID, Field(description="Идентификатор пользователя", examples=ID_EXAMPLES)]
+UserName = Annotated[
+    str,
+    Field(description="Имя пользователя", max_length=255, examples=NAME_EXAMPLES),
+]
+UserEmail = Annotated[
+    str,
+    Field(description="Почта пользователя", max_length=40, min_length=8, examples=EMAIL_EXAMPLES),
+]
+UserPassword = Annotated[
+    str,
+    Field(
+        description="Пароль пользователя", max_length=40, min_length=8, examples=PASSWORD_EXAMPLES
+    ),
+]
+JWTAccessToken = Annotated[
+    str, Field(description="Токен доступа", examples=JWT_ACCESS_TOKEN_EXAMPLES)
+]
+JWTTokenType = Annotated[
+    str, Field(description="Тип токена доступа", examples=JWT_TOKEN_TYPE_EXAMPLES)
+]
 
 
 class AuthenticateUserRequest(BaseModel):
@@ -21,7 +45,7 @@ class AuthenticateUserRequest(BaseModel):
 
 class AuthenticateUserResponse(BaseModel):
     access_token: JWTAccessToken
-    token_type: JWTTokenType
+    token_type: JWTTokenType = Field(default="Bearer")
 
 
 class RegisterUserRequest(BaseModel):
@@ -58,4 +82,4 @@ class RegisterUserResponse(BaseModel):
 class AuthorizedUser(BaseModel):
     id: UserID
     name: UserName
-    is_admin: Flag
+    is_admin: Flag = Field(description="Флаг прав адиминистрирования")
