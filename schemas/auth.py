@@ -5,21 +5,29 @@ from uuid import UUID
 from fastapi import Body
 from pydantic import BaseModel, Field, field_validator
 
+UserID = Annotated[UUID, Field(..., examples=["16fd2706-8baf-433b-82eb-8c7fada847da"])]
+UserName = Annotated[str, Body(max_length=255, examples=["nagibator_rus"])]
+UserEmail = Annotated[str, Body(max_length=40, min_length=8, examples=["!Password123"])]
+UserPassword = Annotated[str, Body(max_length=40, min_length=8, examples=["!Password123"])]
+JWTAccessToken = Annotated[str, Field(...)]
+JWTTokenType = Annotated[str, Field(default="Bearer")]
+Flag = Annotated[bool, Field(..., examples=["False"])]
+
 
 class AuthenticateUserRequest(BaseModel):
-    username: Annotated[str, Body(max_length=255, examples=["nagibator_rus"])]
-    password: Annotated[str, Body(max_length=40, min_length=8, examples=["!Password123"])]
+    username: UserName
+    password: UserPassword
 
 
 class AuthenticateUserResponse(BaseModel):
-    access_token: Annotated[str, Field(...)]
-    token_type: Annotated[str, Field(default="Bearer")]
+    access_token: JWTAccessToken
+    token_type: JWTTokenType
 
 
 class RegisterUserRequest(BaseModel):
-    name: Annotated[str, Body(..., max_length=255, examples=["nagibator_rus"])]
-    email: Annotated[str, Body(..., max_length=255, examples=["email@example.com"])]
-    password: Annotated[str, Body(max_length=40, min_length=8, examples=["!Password123"])]
+    name: UserName
+    email: UserEmail
+    password: UserPassword
 
     @field_validator("email")
     def validate_email(cls, value):
@@ -43,11 +51,11 @@ class RegisterUserRequest(BaseModel):
 
 
 class RegisterUserResponse(BaseModel):
-    id: Annotated[UUID, Field(..., examples=["16fd2706-8baf-433b-82eb-8c7fada847da"])]
-    name: Annotated[str, Field(..., max_length=255, examples=["nagibator_rus"])]
+    id: UserID
+    name: UserName
 
 
 class AuthorizedUser(BaseModel):
-    id: Annotated[UUID, Field(..., examples=["16fd2706-8baf-433b-82eb-8c7fada847da"])]
-    name: Annotated[str, Field(..., max_length=255, examples=["nagibator_rus"])]
-    is_admin: Annotated[bool, Field(..., examples=["False"])]
+    id: UserID
+    name: UserName
+    is_admin: Flag
