@@ -49,7 +49,10 @@ async def get_texts(
 
             response = await client.get(
                 f"{configs.services.texts.URL}/",
-                params=response_params,
+                params={
+                    key: value.value if isinstance(value, Enum) else value
+                    for key, value in response_params.items()
+                },
             )
             response.raise_for_status()
 
