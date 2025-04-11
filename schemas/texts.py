@@ -1,9 +1,8 @@
 from typing import Annotated, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
 from fastapi import Body
-from pydantic import Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from .examples.texts import (
     DIFFICULTY_EXAMPLES,

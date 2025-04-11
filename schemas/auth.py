@@ -2,16 +2,16 @@ import re
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Body
 from pydantic import BaseModel, Field, field_validator
+
 from .examples.auth import (
-    ID_EXAMPLES,
-    NAME_EXAMPLES,
     EMAIL_EXAMPLES,
-    PASSWORD_EXAMPLES,
+    FLAG_EXAMPLES,
+    ID_EXAMPLES,
     JWT_ACCESS_TOKEN_EXAMPLES,
     JWT_TOKEN_TYPE_EXAMPLES,
-    FLAG_EXAMPLES,
+    NAME_EXAMPLES,
+    PASSWORD_EXAMPLES,
 )
 
 Flag = Annotated[bool, Field(examples=FLAG_EXAMPLES)]
