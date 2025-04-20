@@ -3,11 +3,13 @@ from uuid import UUID
 
 import httpx
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Path, UploadFile
+from sse_starlette.sse import EventSourceResponse
 
 from configs import configs
-from schemas.audio import CreateTaskResponse, TasksResponse, DetailTaskResponse
+from schemas.audio import CreateTaskResponse, DetailTaskResponse, TasksResponse
 
 from .utils.protection import AuthorizedUser, RouteProtection
+from .utils.sse_proxy import sse_proxy
 
 router = APIRouter(prefix="/sound")
 
@@ -84,3 +86,15 @@ async def get_task(
             )
 
     return DetailTaskResponse(**response.json())
+
+
+@router.get("/{uuid}/stream", summary="Получать обновления статуса задачи потоком")
+async def monitor_task(
+    uuid: Annotated[UUID, Path(...)],
+    auth: Annotated[AuthorizedUser, Depends(protected)],
+) -> EventSourceResponse:
+    """Получает информацию об обновлениях статуса задачи
+    в реальном времени, используя протокол SSE стриминга.
+    """
+    event_generator = sse_proxy(str(uuid), str(auth.id))
+    return EventSourceResponse(event_generator)
