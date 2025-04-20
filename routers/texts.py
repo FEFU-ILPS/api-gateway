@@ -125,7 +125,7 @@ async def delete_text(
                 detail=e.response.json().get("detail", "Unknown error"),
             )
 
-    return DetailLearningTextResponse(**response.json())
+    return DeleteLearningTextResponse(**response.json())
 
 
 @router.patch("/{uuid}", summary="Обновить данные о тексте", tags=["Texts"])
