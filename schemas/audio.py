@@ -24,7 +24,7 @@ TaskUserID = Annotated[UUID, Field(description="Идентификатор по�
 TaskTextID = Annotated[UUID, Field(description="Идентификатор текста", examples=ID_EXAMPLES)]
 TaskStatus = Annotated[Status, Field(description="Статуст выполнения", examples=STATUS_EXAMPLE)]
 TaskResult = Annotated[
-    str, Field(description="Результат транскрибирования", examples=RESULT_EXAMPLE)
+    str | None, Field(description="Результат транскрибирования", examples=RESULT_EXAMPLE)
 ]
 
 
