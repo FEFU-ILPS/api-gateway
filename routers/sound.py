@@ -2,10 +2,10 @@ from typing import Annotated
 from uuid import UUID
 
 import httpx
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Path, UploadFile
 
 from configs import configs
-from schemas.audio import CreateTaskResponse, TasksResponse
+from schemas.audio import CreateTaskResponse, TasksResponse, DetailTaskResponse
 
 from .utils.protection import AuthorizedUser, RouteProtection
 
@@ -59,3 +59,28 @@ async def get_tasks(auth: Annotated[AuthorizedUser, Depends(protected)]) -> list
             )
 
     return [TasksResponse(**task) for task in response.json()]
+
+
+@router.get("/{uuid}", summary="Получить актуальную информацию о задаче", tags=["Sound"])
+async def get_task(
+    uuid: Annotated[UUID, Path(...)],
+    auth: Annotated[AuthorizedUser, Depends(protected)],
+) -> DetailTaskResponse:
+    """Получает текущую информацию по UUID указаной задачи.
+    Возвращает полную информацию о задача.
+    """
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                f"{configs.services.manager.URL}/{uuid}",
+                json={"user_id": str(auth.id)},
+            )
+            response.raise_for_status()
+
+        except httpx.HTTPStatusError as e:
+            raise HTTPException(
+                status_code=e.response.status_code,
+                detail=e.response.json().get("detail", "Unknown error"),
+            )
+
+    return DetailTaskResponse(**response.json())
