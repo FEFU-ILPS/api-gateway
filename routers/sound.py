@@ -14,7 +14,7 @@ router = APIRouter(prefix="/sound")
 protected = RouteProtection()
 
 
-@router.post("/", summary="Создать задачу на обработку аудио файла")
+@router.post("/", summary="Создать задачу на обработку аудио файла", tags=["Sound"])
 async def create_task(
     file: Annotated[UploadFile, File(...)],
     text_id: Annotated[UUID, Form(...)],
@@ -41,7 +41,7 @@ async def create_task(
     return CreateTaskResponse(**response.json())
 
 
-@router.get("/", summary="Получить список задач")
+@router.get("/", summary="Получить список задач", tags=["Sound"])
 async def get_tasks(auth: Annotated[AuthorizedUser, Depends(protected)]) -> list[TasksResponse]:
     """Получает список всех задач, когда либо созданных в системе ILPS."""
     async with httpx.AsyncClient() as client:

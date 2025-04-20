@@ -35,7 +35,7 @@ class SearchFields(str, Enum):
     PREVIEW = "preview"
 
 
-@router.get("/", summary="Получить список всех текстов")
+@router.get("/", summary="Получить список всех текстов", tags=["Texts"])
 async def get_texts(
     search: ListingSearch[SearchFields] = Depends(),
     sort: ListingSort[SortFields] = Depends(),
@@ -68,7 +68,7 @@ async def get_texts(
         return [LearningTextResponse(**text) for text in response.json()]
 
 
-@router.get("/{uuid}", summary="Получить детальную информацию о тексте")
+@router.get("/{uuid}", summary="Получить детальную информацию о тексте", tags=["Texts"])
 async def get_text(uuid: Annotated[UUID, Path(...)]) -> DetailLearningTextResponse:
     """Возвращает полную информацию о конкретном тексте по его UUID."""
     async with httpx.AsyncClient() as client:
@@ -85,7 +85,7 @@ async def get_text(uuid: Annotated[UUID, Path(...)]) -> DetailLearningTextRespon
     return DetailLearningTextResponse(**response.json())
 
 
-@router.post("/", summary="Добавить текст в систему")
+@router.post("/", summary="Добавить текст в систему", tags=["Texts"])
 async def create_text(
     data: Annotated[CreateLearningTextRequest, Body(...)],
     auth: Annotated[AuthorizedUser, Depends(admin_protected)],
@@ -108,7 +108,7 @@ async def create_text(
     return CreateLearningTextResponse(**response.json())
 
 
-@router.delete("/{uuid}", summary="Удалить текст из системы")
+@router.delete("/{uuid}", summary="Удалить текст из системы", tags=["Texts"])
 async def delete_text(
     uuid: Annotated[UUID, Path(...)],
     auth: Annotated[AuthorizedUser, Depends(admin_protected)],
@@ -128,7 +128,7 @@ async def delete_text(
     return DetailLearningTextResponse(**response.json())
 
 
-@router.patch("/{uuid}", summary="Обновить данные о тексте")
+@router.patch("/{uuid}", summary="Обновить данные о тексте", tags=["Texts"])
 async def update_text(
     uuid: Annotated[UUID, Path(...)],
     data: Annotated[UpdateLearningTextRequest, Body(...)],
