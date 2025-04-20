@@ -16,10 +16,12 @@ from schemas.texts import (
     UpdateLearningTextResponse,
 )
 
-from .utils.protection import AuthorizedUser, protected
+from .utils.protection import AuthorizedUser, RouteProtection
 from .utils.query_params import ListingPagination, ListingSearch, ListingSort
 
 router = APIRouter(prefix="/texts")
+
+admin_protected = RouteProtection(only_admin=True)
 
 
 class SortFields(str, Enum):
@@ -86,10 +88,9 @@ async def get_text(uuid: Annotated[UUID, Path(...)]) -> DetailLearningTextRespon
 @router.post("/", summary="Добавить текст в систему")
 async def create_text(
     data: Annotated[CreateLearningTextRequest, Body(...)],
-    auth: Annotated[AuthorizedUser, Depends(protected)],
+    auth: Annotated[AuthorizedUser, Depends(admin_protected)],
 ) -> CreateLearningTextResponse:
     """Добавляет новый текст в систему."""
-
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(
@@ -110,7 +111,7 @@ async def create_text(
 @router.delete("/{uuid}", summary="Удалить текст из системы")
 async def delete_text(
     uuid: Annotated[UUID, Path(...)],
-    auth: Annotated[AuthorizedUser, Depends(protected)],
+    auth: Annotated[AuthorizedUser, Depends(admin_protected)],
 ) -> DeleteLearningTextResponse:
     """Удаляет текст из системы по его UUID."""
     async with httpx.AsyncClient() as client:
@@ -131,10 +132,9 @@ async def delete_text(
 async def update_text(
     uuid: Annotated[UUID, Path(...)],
     data: Annotated[UpdateLearningTextRequest, Body(...)],
-    auth: Annotated[AuthorizedUser, Depends(protected)],
+    auth: Annotated[AuthorizedUser, Depends(admin_protected)],
 ) -> UpdateLearningTextResponse:
     """Обновляет данные текста по его UUID."""
-
     async with httpx.AsyncClient() as client:
         try:
             response = await client.patch(
