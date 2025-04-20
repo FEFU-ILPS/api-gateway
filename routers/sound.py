@@ -27,7 +27,7 @@ async def create_task(
         try:
             response = await client.post(
                 f"{configs.services.manager.URL}/transcribe",
-                data={"text_id": text_id, "user_id": auth.id},
+                data={"text_id": str(text_id), "user_id": str(auth.id)},
                 files={"file": (file.filename, file.file, file.content_type)},
             )
             response.raise_for_status()
@@ -48,7 +48,7 @@ async def get_tasks(auth: Annotated[AuthorizedUser, Depends(protected)]) -> list
         try:
             response = await client.post(
                 f"{configs.services.manager.URL}/",
-                data={"user_id": auth.id},
+                json={"user_id": str(auth.id)},
             )
             response.raise_for_status()
 
@@ -58,4 +58,4 @@ async def get_tasks(auth: Annotated[AuthorizedUser, Depends(protected)]) -> list
                 detail=e.response.json().get("detail", "Unknown error"),
             )
 
-    return [TasksResponse.model_validate(**task) for task in response.json()]
+    return [TasksResponse(**task) for task in response.json()]
