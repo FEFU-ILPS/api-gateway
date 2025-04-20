@@ -16,6 +16,7 @@ from schemas.texts import (
     UpdateLearningTextResponse,
 )
 
+from .utils.protection import AuthorizedUser, protected
 from .utils.query_params import ListingPagination, ListingSearch, ListingSort
 
 router = APIRouter(prefix="/texts")
@@ -85,6 +86,7 @@ async def get_text(uuid: Annotated[UUID, Path(...)]) -> DetailLearningTextRespon
 @router.post("/", summary="Добавить текст в систему")
 async def create_text(
     data: Annotated[CreateLearningTextRequest, Body(...)],
+    auth: Annotated[AuthorizedUser, Depends(protected)],
 ) -> CreateLearningTextResponse:
     """Добавляет новый текст в систему."""
 
@@ -106,7 +108,10 @@ async def create_text(
 
 
 @router.delete("/{uuid}", summary="Удалить текст из системы")
-async def delete_text(uuid: Annotated[UUID, Path(...)]) -> DeleteLearningTextResponse:
+async def delete_text(
+    uuid: Annotated[UUID, Path(...)],
+    auth: Annotated[AuthorizedUser, Depends(protected)],
+) -> DeleteLearningTextResponse:
     """Удаляет текст из системы по его UUID."""
     async with httpx.AsyncClient() as client:
         try:
@@ -126,6 +131,7 @@ async def delete_text(uuid: Annotated[UUID, Path(...)]) -> DeleteLearningTextRes
 async def update_text(
     uuid: Annotated[UUID, Path(...)],
     data: Annotated[UpdateLearningTextRequest, Body(...)],
+    auth: Annotated[AuthorizedUser, Depends(protected)],
 ) -> UpdateLearningTextResponse:
     """Обновляет данные текста по его UUID."""
 
