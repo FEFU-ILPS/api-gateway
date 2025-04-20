@@ -27,3 +27,4 @@ class ServicesConfiguration(BaseSettings):
     # * Вложенные группы настроек
     auth: ServiceConfiguration = get_service_configuration("auth")
     texts: ServiceConfiguration = get_service_configuration("texts")
+    manager: ServiceConfiguration = get_service_configuration("manager")
