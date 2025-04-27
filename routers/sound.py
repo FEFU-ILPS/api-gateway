@@ -88,7 +88,7 @@ async def get_task(
     return DetailTaskResponse(**response.json())
 
 
-@router.get("/{uuid}/stream", summary="Получать обновления статуса задачи потоком")
+@router.get("/{uuid}/stream", summary="Получать обновления статуса задачи потоком", tags=["Sound"])
 async def monitor_task(
     uuid: Annotated[UUID, Path(...)],
     auth: Annotated[AuthorizedUser, Depends(protected)],
