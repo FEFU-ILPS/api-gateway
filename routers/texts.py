@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import Annotated, List
 from uuid import UUID
 
@@ -17,46 +16,18 @@ from schemas.texts import (
 )
 
 from .utils.protection import AuthorizedUser, RouteProtection
-from .utils.query_params import ListingPagination, ListingSearch, ListingSort
 
 router = APIRouter(prefix="/texts")
 
 admin_protected = RouteProtection(only_admin=True)
 
 
-class SortFields(str, Enum):
-    TITLE = "title"
-    DIFFICULTY = "difficulty"
-
-
-class SearchFields(str, Enum):
-    TITLE = "title"
-    DIFFICULTY = "difficulty"
-    PREVIEW = "preview"
-
-
 @router.get("/", summary="Получить список всех текстов", tags=["Texts"])
-async def get_texts(
-    search: ListingSearch[SearchFields] = Depends(),
-    sort: ListingSort[SortFields] = Depends(),
-    pagination: ListingPagination = Depends(),
-) -> List[LearningTextResponse]:
+async def get_texts() -> List[LearningTextResponse]:
     """Возвращает полный список всех обучающих текстов с краткой информацией."""
     async with httpx.AsyncClient() as client:
         try:
-            response_params = {}
-            request_params = (search, sort, pagination)
-
-            for group in request_params:
-                response_params.update(group.model_dump(exclude_none=True))
-
-            response = await client.get(
-                f"{configs.services.texts.URL}/",
-                params={
-                    key: value.value if isinstance(value, Enum) else value
-                    for key, value in response_params.items()
-                },
-            )
+            response = await client.get(f"{configs.services.texts.URL}/")
             response.raise_for_status()
 
         except httpx.HTTPStatusError as e:
