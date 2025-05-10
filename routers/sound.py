@@ -19,6 +19,7 @@ protected = RouteProtection()
 @router.post("/", summary="Создать задачу на обработку аудио файла", tags=["Sound"])
 async def create_task(
     file: Annotated[UploadFile, File(...)],
+    title: Annotated[str, Form(...)],
     text_id: Annotated[UUID, Form(...)],
     auth: Annotated[AuthorizedUser, Depends(protected)],
 ) -> CreateTaskResponse:
@@ -29,7 +30,7 @@ async def create_task(
         try:
             response = await client.post(
                 f"{configs.services.manager.URL}/transcribe",
-                data={"text_id": str(text_id), "user_id": str(auth.id)},
+                data={"title": title, "text_id": str(text_id), "user_id": str(auth.id)},
                 files={"file": (file.filename, file.file, file.content_type)},
             )
             response.raise_for_status()
