@@ -59,7 +59,7 @@ async def get_text(uuid: Annotated[UUID, Path(...)]) -> DetailLearningTextRespon
 @router.post("/", summary="Добавить текст в систему", tags=["Texts"])
 async def create_text(
     data: Annotated[CreateLearningTextRequest, Body(...)],
-    auth: Annotated[AuthorizedUser, Depends(admin_protected)],
+    _: Annotated[AuthorizedUser, Depends(admin_protected)],
 ) -> CreateLearningTextResponse:
     """Добавляет новый текст в систему."""
     async with httpx.AsyncClient() as client:
@@ -82,7 +82,7 @@ async def create_text(
 @router.delete("/{uuid}", summary="Удалить текст из системы", tags=["Texts"])
 async def delete_text(
     uuid: Annotated[UUID, Path(...)],
-    auth: Annotated[AuthorizedUser, Depends(admin_protected)],
+    _: Annotated[AuthorizedUser, Depends(admin_protected)],
 ) -> DeleteLearningTextResponse:
     """Удаляет текст из системы по его UUID."""
     async with httpx.AsyncClient() as client:
@@ -103,7 +103,7 @@ async def delete_text(
 async def update_text(
     uuid: Annotated[UUID, Path(...)],
     data: Annotated[UpdateLearningTextRequest, Body(...)],
-    auth: Annotated[AuthorizedUser, Depends(admin_protected)],
+    _: Annotated[AuthorizedUser, Depends(admin_protected)],
 ) -> UpdateLearningTextResponse:
     """Обновляет данные текста по его UUID."""
     async with httpx.AsyncClient() as client:
