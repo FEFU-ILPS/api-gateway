@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import auth_router, health_router, texts_router, sound_router
+from routers import auth_router, health_router, texts_router, tasks_router
 
 
 @asynccontextmanager
@@ -20,7 +20,7 @@ gateway = FastAPI(lifespan=lifespan)
 gateway.include_router(health_router)
 gateway.include_router(auth_router)
 gateway.include_router(texts_router)
-gateway.include_router(sound_router)
+gateway.include_router(tasks_router)
 
 gateway.add_middleware(
     CORSMiddleware,

@@ -11,12 +11,12 @@ from schemas.audio import CreateTaskResponse, DetailTaskResponse, TasksResponse
 from .utils.protection import AuthorizedUser, RouteProtection
 from .utils.sse_proxy import sse_proxy
 
-router = APIRouter(prefix="/sound")
+router = APIRouter(prefix="/tasks")
 
 protected = RouteProtection()
 
 
-@router.post("/", summary="Создать задачу на обработку аудио файла", tags=["Sound"])
+@router.post("/", summary="Создать задачу на обработку аудио файла", tags=["Tasks"])
 async def create_task(
     file: Annotated[UploadFile, File(...)],
     title: Annotated[str, Form(...)],
@@ -44,7 +44,7 @@ async def create_task(
     return CreateTaskResponse(**response.json())
 
 
-@router.get("/", summary="Получить список задач", tags=["Sound"])
+@router.get("/", summary="Получить список задач", tags=["Tasks"])
 async def get_tasks(auth: Annotated[AuthorizedUser, Depends(protected)]) -> list[TasksResponse]:
     """Получает список всех задач, когда либо созданных в системе ILPS."""
     async with httpx.AsyncClient() as client:
@@ -64,7 +64,7 @@ async def get_tasks(auth: Annotated[AuthorizedUser, Depends(protected)]) -> list
     return [TasksResponse(**task) for task in response.json()]
 
 
-@router.get("/{uuid}", summary="Получить актуальную информацию о задаче", tags=["Sound"])
+@router.get("/{uuid}", summary="Получить актуальную информацию о задаче", tags=["Tasks"])
 async def get_task(
     uuid: Annotated[UUID, Path(...)],
     auth: Annotated[AuthorizedUser, Depends(protected)],
@@ -89,7 +89,7 @@ async def get_task(
     return DetailTaskResponse(**response.json())
 
 
-@router.get("/{uuid}/stream", summary="Получать обновления статуса задачи потоком", tags=["Sound"])
+@router.get("/{uuid}/stream", summary="Получать обновления статуса задачи потоком", tags=["Tasks"])
 async def monitor_task(
     uuid: Annotated[UUID, Path(...)],
     auth: Annotated[AuthorizedUser, Depends(protected)],
