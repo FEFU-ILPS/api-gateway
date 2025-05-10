@@ -11,13 +11,6 @@ TITLE_EXAMPLES: Final[list[str]] = [
     "История великого русского государства",
 ]
 
-PREVIEW_EXAMPLES: Final[list[str]] = [
-    "Этот текст повествует трагичную историю деда Максима",
-    "В этом рассказе раскрываются ноты человеческой души",
-]
-
-DIFFICULTY_EXAMPLES: Final[list[int]] = list(range(11))
-
 VALUE_EXAMPLES: Final[list[str]] = [
     (
         "School later when imagine. Push effort consider shoulder.\n"
