@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Path, UploadF
 from sse_starlette.sse import EventSourceResponse
 
 from configs import configs
-from schemas.audio import CreateTaskResponse, DetailTaskResponse, TasksResponse
+from schemas.tasks import CreateTaskResponse, DetailTaskResponse, TasksResponse
 
 from .utils.protection import AuthorizedUser, RouteProtection
 from .utils.sse_proxy import sse_proxy

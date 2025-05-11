@@ -4,7 +4,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 from enum import Enum
 
-from .examples.audio import (
+from .examples.tasks import (
     ID_EXAMPLES,
     STATUS_EXAMPLES,
     RESULT_EXAMPLES,
