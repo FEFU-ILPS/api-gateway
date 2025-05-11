@@ -28,3 +28,4 @@ class ServicesConfiguration(BaseSettings):
     auth: ServiceConfiguration = get_service_configuration("auth")
     texts: ServiceConfiguration = get_service_configuration("texts")
     manager: ServiceConfiguration = get_service_configuration("manager")
+    exercises: ServiceConfiguration = get_service_configuration("exercises")
