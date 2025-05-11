@@ -3,6 +3,7 @@ from uuid import UUID
 
 import httpx
 from fastapi import APIRouter, Body, Depends, HTTPException, Path
+from loguru import logger
 
 from configs import configs
 from schemas.exercises import (
@@ -15,9 +16,9 @@ from schemas.exercises import (
     UpdateExerciseResponse,
 )
 
+from .utils.embeded import Embeded, EmbededResponse
 from .utils.pagination import PaginatedResponse, Pagination
 from .utils.protection import AuthorizedUser, RouteProtection
-from .utils.embeded import Embeded, EmbededResponse
 
 router = APIRouter(prefix="/exercises")
 
@@ -69,9 +70,13 @@ async def get_exercise(
             item = DetailExerciseResponse(**response.json())
 
             if "text" in entities:
-                response = await client.get(f"{configs.services.texts.URL}/{item.text_id}")
+                logger.info("Requesting embed by 'text_id'.")
+                url = f"{configs.services.texts.URL}/{item.text_id}"
+                logger.info(f"Target URL: {url}")
+                response = await client.get(url)
                 response.raise_for_status()
                 embed["text"] = response.json()
+                logger.info(f"Recived: {embed['text']}")
 
         except httpx.HTTPStatusError as e:
             raise HTTPException(
