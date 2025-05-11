@@ -17,6 +17,7 @@ from schemas.texts import (
 
 from .utils.pagination import PaginatedResponse, Pagination
 from .utils.protection import AuthorizedUser, RouteProtection
+from .utils.embeded import Embeded, EmbededResponse
 
 router = APIRouter(prefix="/texts")
 
@@ -53,9 +54,13 @@ async def get_texts(
 @router.get("/{uuid}", summary="Получить детальную информацию о тексте", tags=["Texts"])
 async def get_text(
     uuid: Annotated[UUID, Path(...)],
+    emb: Annotated[Embeded, Depends()],
     _: Annotated[AuthorizedUser, Depends(protected)],
-) -> DetailLearningTextResponse:
+) -> EmbededResponse[DetailLearningTextResponse]:
     """Возвращает полную информацию о конкретном тексте по его UUID."""
+
+    embed = {}
+    entities = emb.get_entities()
     async with httpx.AsyncClient() as client:
         try:
             response = await client.get(f"{configs.services.texts.URL}/{uuid}")
@@ -67,7 +72,8 @@ async def get_text(
                 detail=e.response.json().get("detail", "Unknown error"),
             )
 
-    return DetailLearningTextResponse(**response.json())
+    item = DetailLearningTextResponse(**response.json())
+    return EmbededResponse[DetailLearningTextResponse](item=item, embeded=embed)
 
 
 @router.post("/", summary="Добавить текст в систему", tags=["Texts"])

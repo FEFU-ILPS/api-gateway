@@ -5,6 +5,7 @@ import httpx
 from fastapi import APIRouter, Body, Depends, HTTPException, Path
 
 from configs import configs
+from schemas.texts import DetailLearningTextResponse
 from schemas.exercises import (
     CreateExerciseRequest,
     CreateExerciseResponse,
@@ -17,6 +18,7 @@ from schemas.exercises import (
 
 from .utils.pagination import PaginatedResponse, Pagination
 from .utils.protection import AuthorizedUser, RouteProtection
+from .utils.embeded import Embeded, EmbededResponse
 
 router = APIRouter(prefix="/exercises")
 
@@ -50,16 +52,27 @@ async def get_exercises(
         return PaginatedResponse[ExerciseResponse](**response.json())
 
 
+# TODO: рассмотерть вынес rение функционала embed в отдельный роут `/{uuid}/embeded`
 @router.get("/{uuid}", summary="Получить детальную информацию об упражнении", tags=["Exercises"])
 async def get_exercise(
     uuid: Annotated[UUID, Path(...)],
+    emb: Annotated[Embeded, Depends()],
     _: Annotated[AuthorizedUser, Depends(protected)],
-) -> DetailExerciseResponse:
+) -> EmbededResponse[DetailExerciseResponse]:
     """Возвращает полную информацию о конкретном упражнении по его UUID."""
+
+    embed = {}
+    entities = emb.get_entities()
     async with httpx.AsyncClient() as client:
         try:
             response = await client.get(f"{configs.services.exercises.URL}/{uuid}")
             response.raise_for_status()
+            item = DetailExerciseResponse(**response.json())
+
+            if "text" in entities:
+                response = await client.get(f"{configs.services.texts.URL}/{item.text_id}")
+                response.raise_for_status()
+                embed["text"] = DetailLearningTextResponse(**response.json())
 
         except httpx.HTTPStatusError as e:
             raise HTTPException(
@@ -67,7 +80,7 @@ async def get_exercise(
                 detail=e.response.json().get("detail", "Unknown error"),
             )
 
-    return DetailExerciseResponse(**response.json())
+    return EmbededResponse[DetailExerciseResponse](item=item, embeded=embed)
 
 
 @router.post("/", summary="Добавить упражнение в систему", tags=["Exercises"])

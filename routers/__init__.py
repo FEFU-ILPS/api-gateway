@@ -2,7 +2,7 @@ from .auth import router as auth_router
 from .health import router as health_router
 from .texts import router as texts_router
 from .tasks import router as tasks_router
-from .exercises import exercises_router
+from .exercises import router as exercises_router
 
 __all__ = (
     "health_router",
