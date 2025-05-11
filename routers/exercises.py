@@ -5,7 +5,6 @@ import httpx
 from fastapi import APIRouter, Body, Depends, HTTPException, Path
 
 from configs import configs
-from schemas.texts import DetailLearningTextResponse
 from schemas.exercises import (
     CreateExerciseRequest,
     CreateExerciseResponse,
@@ -72,7 +71,7 @@ async def get_exercise(
             if "text" in entities:
                 response = await client.get(f"{configs.services.texts.URL}/{item.text_id}")
                 response.raise_for_status()
-                embed["text"] = DetailLearningTextResponse(**response.json())
+                embed["text"] = response.json()
 
         except httpx.HTTPStatusError as e:
             raise HTTPException(
