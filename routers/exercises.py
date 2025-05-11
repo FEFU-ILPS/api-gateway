@@ -70,13 +70,9 @@ async def get_exercise(
             item = DetailExerciseResponse(**response.json())
 
             if "text" in entities:
-                logger.info("Requesting embed by 'text_id'.")
-                url = f"{configs.services.texts.URL}/{item.text_id}"
-                logger.info(f"Target URL: {url}")
-                response = await client.get(url)
+                response = await client.get(f"{configs.services.texts.URL}/{item.text_id}")
                 response.raise_for_status()
                 embed["text"] = response.json()
-                logger.info(f"Recived: {embed['text']}")
 
         except httpx.HTTPStatusError as e:
             raise HTTPException(

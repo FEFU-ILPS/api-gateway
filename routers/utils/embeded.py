@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar
+from typing import Generic, TypeVar, Any
 
 from pydantic import BaseModel, Field
 
@@ -23,4 +23,4 @@ class EmbededResponse(BaseModel, Generic[M]):
     """Класс ответа с расширением."""
 
     item: M = Field(description="Целевой объект")
-    embeded: dict[str, BaseModel] = Field(description="Расширение запроса", default={})
+    embeded: dict[str, dict[str, Any]] = Field(description="Расширение запроса", default={})
