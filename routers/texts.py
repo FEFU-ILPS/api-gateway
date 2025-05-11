@@ -1,4 +1,4 @@
-from typing import Annotated, List
+from typing import Annotated
 from uuid import UUID
 
 import httpx
@@ -15,6 +15,7 @@ from schemas.texts import (
     UpdateLearningTextResponse,
 )
 
+from .utils.pagination import PaginatedResponse, Pagination
 from .utils.protection import AuthorizedUser, RouteProtection
 
 router = APIRouter(prefix="/texts")
@@ -23,11 +24,19 @@ admin_protected = RouteProtection(only_admin=True)
 
 
 @router.get("/", summary="Получить список всех текстов", tags=["Texts"])
-async def get_texts() -> List[LearningTextResponse]:
+async def get_texts(
+    pg: Annotated[Pagination, Depends()],
+) -> PaginatedResponse[LearningTextResponse]:
     """Возвращает полный список всех обучающих текстов с краткой информацией."""
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.get(f"{configs.services.texts.URL}/")
+            response = await client.get(
+                f"{configs.services.texts.URL}/",
+                params={
+                    "page": pg.page,
+                    "size": pg.size,
+                },
+            )
             response.raise_for_status()
 
         except httpx.HTTPStatusError as e:
@@ -36,7 +45,7 @@ async def get_texts() -> List[LearningTextResponse]:
                 detail=e.response.json().get("detail", "Unknown error"),
             )
 
-        return [LearningTextResponse(**text) for text in response.json()]
+        return PaginatedResponse[LearningTextResponse](**response.json())
 
 
 @router.get("/{uuid}", summary="Получить детальную информацию о тексте", tags=["Texts"])
