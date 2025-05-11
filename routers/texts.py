@@ -20,12 +20,14 @@ from .utils.protection import AuthorizedUser, RouteProtection
 
 router = APIRouter(prefix="/texts")
 
+protected = RouteProtection()
 admin_protected = RouteProtection(only_admin=True)
 
 
 @router.get("/", summary="Получить список всех текстов", tags=["Texts"])
 async def get_texts(
     pg: Annotated[Pagination, Depends()],
+    _: Annotated[AuthorizedUser, Depends(protected)],
 ) -> PaginatedResponse[LearningTextResponse]:
     """Возвращает полный список всех обучающих текстов с краткой информацией."""
     async with httpx.AsyncClient() as client:
@@ -49,7 +51,10 @@ async def get_texts(
 
 
 @router.get("/{uuid}", summary="Получить детальную информацию о тексте", tags=["Texts"])
-async def get_text(uuid: Annotated[UUID, Path(...)]) -> DetailLearningTextResponse:
+async def get_text(
+    uuid: Annotated[UUID, Path(...)],
+    _: Annotated[AuthorizedUser, Depends(protected)],
+) -> DetailLearningTextResponse:
     """Возвращает полную информацию о конкретном тексте по его UUID."""
     async with httpx.AsyncClient() as client:
         try:
