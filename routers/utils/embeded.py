@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar, Any
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -6,7 +6,7 @@ M = TypeVar("M", bound=BaseModel)
 
 
 class Embeded(BaseModel):
-    """Класс Query параметров, необходимых для указания расширения запроса"""
+    """Класс Query параметров, необходимых для указания расширения запроса."""
 
     embed: str = Field(description="Список сущностей для расширения запроса", default="")
 

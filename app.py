@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import auth_router, health_router, texts_router, tasks_router, exercises_router
+from routers import auth_router, exercises_router, health_router, tasks_router, texts_router
 
 
 @asynccontextmanager

@@ -15,9 +15,9 @@ from schemas.texts import (
     UpdateLearningTextResponse,
 )
 
+from .utils.embeded import Embeded, EmbededResponse
 from .utils.pagination import PaginatedResponse, Pagination
 from .utils.protection import AuthorizedUser, RouteProtection
-from .utils.embeded import Embeded, EmbededResponse
 
 router = APIRouter(prefix="/texts")
 

@@ -1,7 +1,7 @@
+from enum import Enum
 from uuid import UUID
 
-from pydantic import BaseModel, Field, ConfigDict
-from enum import Enum
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ExerciseLang(Enum):

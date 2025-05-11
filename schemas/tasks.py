@@ -1,16 +1,16 @@
+from enum import Enum
 from typing import Annotated
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
-from enum import Enum
 
 from .examples.tasks import (
-    ID_EXAMPLES,
-    STATUS_EXAMPLES,
-    RESULT_EXAMPLES,
     ACCURACY_EXAMPLES,
-    ERRORS_EXAMPLES,
     COMMENTS_EXAMPLES,
+    ERRORS_EXAMPLES,
+    ID_EXAMPLES,
+    RESULT_EXAMPLES,
+    STATUS_EXAMPLES,
 )
 
 

@@ -3,7 +3,6 @@ from uuid import UUID
 
 import httpx
 from fastapi import APIRouter, Body, Depends, HTTPException, Path
-from loguru import logger
 
 from configs import configs
 from schemas.exercises import (
@@ -52,7 +51,7 @@ async def get_exercises(
         return PaginatedResponse[ExerciseResponse](**response.json())
 
 
-# TODO: рассмотерть вынес rение функционала embed в отдельный роут `/{uuid}/embeded`
+# TODO: рассмотерть вынесение функционала embed в отдельный роут `/{uuid}/embeded`
 @router.get("/{uuid}", summary="Получить детальную информацию об упражнении", tags=["Exercises"])
 async def get_exercise(
     uuid: Annotated[UUID, Path(...)],

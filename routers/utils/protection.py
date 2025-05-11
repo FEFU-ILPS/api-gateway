@@ -7,7 +7,6 @@ from fastapi.security import OAuth2PasswordBearer
 from configs import configs
 from schemas.auth import AuthorizedUser
 
-
 # ! На данный момент это не будет работать непостредственно в Swagger
 # ! URL /auth/login принимает JSON, а не URL-Encoded, что подразумевается
 # ! в использовании OAuthPasswordBearer.
