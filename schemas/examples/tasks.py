@@ -28,7 +28,7 @@ ACCURACY_EXAMPLES: Final[list[float]] = [
 ]
 
 
-ERRORS_EXAMPLES: Final[list[list[dict[str, int | str | None]]]] = [
+MISTAKES_EXAMPLES: Final[list[list[dict[str, int | str | None]]]] = [
     [
         {"position": 6, "reference": "ɔːɹ", "actual": "oʊ", "type": "Replacement"},
         {"position": 14, "reference": "n", "actual": None, "type": "Deletion"},
