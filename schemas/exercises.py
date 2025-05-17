@@ -27,6 +27,7 @@ class ExerciseResponse(BaseSchema):
 
     id: UUID = Field(description="Идентификатор упражнения")
     seq_number: int = Field(description="Номер упражнения", gt=0)
+    title: str = Field(description="Название упражнения", max_length=50)
     difficulty: int = Field(description="Сложность упражнения", ge=0)
     preview_image: str | None = Field(description="Изображение превью", default=None)
     lang: ExerciseLang = Field(description="Язык упражнения")
@@ -38,6 +39,7 @@ class DetailExerciseResponse(BaseSchema):
 
     id: UUID = Field(description="Идентификатор упражнения")
     seq_number: int = Field(description="Номер упражнения", gt=0)
+    title: str = Field(description="Название упражнения", max_length=50)
     difficulty: int = Field(description="Сложность упражнения", ge=0)
     preview_image: str | None = Field(description="Изображение превью", default=None)
     background_image: str | None = Field(description="Изображение фона", default=None)
@@ -50,6 +52,9 @@ class CreateExerciseRequest(BaseSchema):
     """Данные, отправляемые в ответ на запрос добавления нового упражнения."""
 
     difficulty: int = Field(description="Сложность упражнения", ge=0)
+    title: str = Field(
+        description="Название упражнения", max_length=50, default="Обычное упражнение"
+    )
     preview_image: str | None = Field(description="Изображение превью", default=None)
     background_image: str | None = Field(description="Изображение фона", default=None)
     text_id: UUID = Field(description="Идентификатор текста")
@@ -74,6 +79,7 @@ class UpdateExerciseRequest(BaseSchema):
     """Данные, для обновления информации об упражнении."""
 
     difficulty: int | None = Field(description="Сложность упражнения", ge=0, default=None)
+    title: str | None = Field(description="Название упражнения", max_length=50, default=None)
     preview_image: str | None = Field(description="Изображение превью", default=None)
     background_image: str | None = Field(description="Изображение фона", default=None)
     lang: ExerciseLang | None = Field(description="Язык упражнения", default=None)
@@ -86,6 +92,7 @@ class UpdateExerciseResponse(BaseSchema):
 
     id: UUID = Field(description="Идентификатор упражнения")
     seq_number: int = Field(description="Номер упражнения", gt=0)
+    title: str = Field(description="Название упражнения", max_length=50)
     difficulty: int = Field(description="Сложность упражнения", ge=0)
     preview_image: str | None = Field(description="Изображение превью", default=None)
     background_image: str | None = Field(description="Изображение фона", default=None)
