@@ -9,4 +9,4 @@ class GraylogConfiguration(BaseSettings):
     PORT: int
 
     # * Опциональные переменные
-    ENABLE: bool = True
+    ENABLE: bool = False
