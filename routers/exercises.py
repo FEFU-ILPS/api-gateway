@@ -81,8 +81,8 @@ async def get_embedded_exercise(
         response.raise_for_status()
         item = DetailExerciseResponse(**response.json())
 
-    logger.info("Getting embedding text information...")
     if "text" in entities:
+        logger.info("Getting embedding text information...")
         async with proxy_request(configs.services.texts.URL) as client:
             response = await client.get(f"/{item.text_id}")
             response.raise_for_status()
