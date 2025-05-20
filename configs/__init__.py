@@ -13,7 +13,7 @@ class ProjectConfiguration(BaseSettings):
 
     # * Опциональные переменные
     DEBUG_MODE: bool = False
-    SERVICE_NAME: str = "ilps-backend-api-gateway"
+    SERVICE_NAME: str = "ilps-api-gateway"
 
 
 configs = ProjectConfiguration()
