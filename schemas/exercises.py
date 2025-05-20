@@ -3,6 +3,16 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from .examples.exercises import (
+    DIFFICYLTY_EXAMPLES,
+    ID_EXAMPLES,
+    IMAGE_EXAMPLES,
+    LANG_EXAMPLES,
+    SEQ_NUMBER_EXAMPLES,
+    TAGS_EXAMPLES,
+    TITLE_EXAMPLES,
+)
+
 
 class ExerciseLang(Enum):
     """Перечисление языков упражнения."""
@@ -25,77 +35,117 @@ class BaseSchema(BaseModel):
 class ExerciseResponse(BaseSchema):
     """Данные, отправляемые в ответ на запрос получения списка упражнений."""
 
-    id: UUID = Field(description="Идентификатор упражнения")
-    seq_number: int = Field(description="Номер упражнения", gt=0)
-    title: str = Field(description="Название упражнения", max_length=50)
-    difficulty: int = Field(description="Сложность упражнения", ge=0)
-    preview_image: str | None = Field(description="Изображение превью", default=None)
-    lang: ExerciseLang = Field(description="Язык упражнения")
-    tags: list[ExerciseTag] = Field(description="Теги упражнения", default=[])
+    id: UUID = Field(description="Идентификатор упражнения", examples=ID_EXAMPLES)
+    seq_number: int = Field(description="Номер упражнения", gt=0, examples=SEQ_NUMBER_EXAMPLES)
+    title: str = Field(description="Название упражнения", max_length=50, examples=TITLE_EXAMPLES)
+    difficulty: int = Field(description="Сложность упражнения", ge=0, examples=DIFFICYLTY_EXAMPLES)
+    preview_image: str | None = Field(
+        description="Изображение превью", default=None, examples=IMAGE_EXAMPLES
+    )
+    lang: ExerciseLang = Field(description="Язык упражнения", examples=LANG_EXAMPLES)
+    tags: list[ExerciseTag] = Field(
+        description="Теги упражнения", default=[], examples=TAGS_EXAMPLES
+    )
 
 
 class DetailExerciseResponse(BaseSchema):
     """Данные, отправляемые в ответ на запрос получения деталей об упражнении."""
 
-    id: UUID = Field(description="Идентификатор упражнения")
-    seq_number: int = Field(description="Номер упражнения", gt=0)
-    title: str = Field(description="Название упражнения", max_length=50)
-    difficulty: int = Field(description="Сложность упражнения", ge=0)
-    preview_image: str | None = Field(description="Изображение превью", default=None)
-    background_image: str | None = Field(description="Изображение фона", default=None)
-    text_id: UUID = Field(description="Идентификатор текста")
-    lang: ExerciseLang = Field(description="Язык упражнения")
-    tags: list[ExerciseTag] = Field(description="Теги упражнения", default=[])
+    id: UUID = Field(description="Идентификатор упражнения", examples=ID_EXAMPLES)
+    seq_number: int = Field(description="Номер упражнения", gt=0, examples=SEQ_NUMBER_EXAMPLES)
+    title: str = Field(description="Название упражнения", max_length=50, examples=TITLE_EXAMPLES)
+    difficulty: int = Field(description="Сложность упражнения", ge=0, examples=DIFFICYLTY_EXAMPLES)
+    preview_image: str | None = Field(
+        description="Изображение превью", default=None, examples=IMAGE_EXAMPLES
+    )
+    background_image: str | None = Field(
+        description="Изображение фона", default=None, examples=IMAGE_EXAMPLES
+    )
+    text_id: UUID = Field(description="Идентификатор текста", examples=ID_EXAMPLES)
+    lang: ExerciseLang = Field(description="Язык упражнения", examples=LANG_EXAMPLES)
+    tags: list[ExerciseTag] = Field(
+        description="Теги упражнения", default=[], examples=TAGS_EXAMPLES
+    )
 
 
 class CreateExerciseRequest(BaseSchema):
     """Данные, отправляемые в ответ на запрос добавления нового упражнения."""
 
-    difficulty: int = Field(description="Сложность упражнения", ge=0)
+    difficulty: int = Field(description="Сложность упражнения", ge=0, examples=DIFFICYLTY_EXAMPLES)
     title: str = Field(
-        description="Название упражнения", max_length=50, default="Обычное упражнение"
+        description="Название упражнения",
+        max_length=50,
+        default="Обычное упражнение",
+        examples=TITLE_EXAMPLES,
     )
-    preview_image: str | None = Field(description="Изображение превью", default=None)
-    background_image: str | None = Field(description="Изображение фона", default=None)
-    text_id: UUID = Field(description="Идентификатор текста")
-    lang: ExerciseLang = Field(description="Язык упражнения")
-    tags: list[ExerciseTag] = Field(description="Теги упражнения", default=[])
+    preview_image: str | None = Field(
+        description="Изображение превью", default=None, examples=IMAGE_EXAMPLES
+    )
+    background_image: str | None = Field(
+        description="Изображение фона", default=None, examples=IMAGE_EXAMPLES
+    )
+    text_id: UUID = Field(description="Идентификатор текста", examples=ID_EXAMPLES)
+    lang: ExerciseLang = Field(description="Язык упражнения", examples=LANG_EXAMPLES)
+    tags: list[ExerciseTag] = Field(
+        description="Теги упражнения", default=[], examples=TAGS_EXAMPLES
+    )
 
 
 class CreateExerciseResponse(BaseSchema):
     """Данные, требующиеся для создания/добавления нового упражнения."""
 
-    id: UUID = Field(description="Идентификатор упражнения")
-    seq_number: int = Field(description="Номер упражнения", gt=0)
+    id: UUID = Field(description="Идентификатор упражнения", examples=ID_EXAMPLES)
+    seq_number: int = Field(description="Номер упражнения", gt=0, examples=SEQ_NUMBER_EXAMPLES)
 
 
 class DeleteExerciseResponse(BaseSchema):
     """Данные, отправляемые в ответ на запрос добавления нового упражнения."""
 
-    id: UUID = Field(description="Идентификатор упражнения")
+    id: UUID = Field(description="Идентификатор упражнения", examples=ID_EXAMPLES)
+    seq_number: int = Field(description="Номер упражнения", gt=0, examples=SEQ_NUMBER_EXAMPLES)
 
 
 class UpdateExerciseRequest(BaseSchema):
     """Данные, для обновления информации об упражнении."""
 
-    difficulty: int | None = Field(description="Сложность упражнения", ge=0, default=None)
-    title: str | None = Field(description="Название упражнения", max_length=50, default=None)
-    preview_image: str | None = Field(description="Изображение превью", default=None)
-    background_image: str | None = Field(description="Изображение фона", default=None)
-    lang: ExerciseLang | None = Field(description="Язык упражнения", default=None)
-    tags: list[ExerciseTag] | None = Field(description="Теги упражнения", default=None)
-    text_id: UUID | None = Field(description="Идентификатор текста", default=None)
+    difficulty: int | None = Field(
+        description="Сложность упражнения", ge=0, default=None, examples=DIFFICYLTY_EXAMPLES
+    )
+    title: str | None = Field(
+        description="Название упражнения", max_length=50, default=None, examples=TITLE_EXAMPLES
+    )
+    preview_image: str | None = Field(
+        description="Изображение превью", default=None, examples=IMAGE_EXAMPLES
+    )
+    background_image: str | None = Field(
+        description="Изображение фона", default=None, examples=IMAGE_EXAMPLES
+    )
+    text_id: UUID | None = Field(
+        description="Идентификатор текста", default=None, examples=ID_EXAMPLES
+    )
+    lang: ExerciseLang | None = Field(
+        description="Язык упражнения", default=None, examples=LANG_EXAMPLES
+    )
+    tags: list[ExerciseTag] | None = Field(
+        description="Теги упражнения", default=None, examples=TAGS_EXAMPLES
+    )
 
 
 class UpdateExerciseResponse(BaseSchema):
     """Данные, отправляемые в ответ на запрос изменения информации об упражнении."""
 
-    id: UUID = Field(description="Идентификатор упражнения")
-    seq_number: int = Field(description="Номер упражнения", gt=0)
-    title: str = Field(description="Название упражнения", max_length=50)
-    difficulty: int = Field(description="Сложность упражнения", ge=0)
-    preview_image: str | None = Field(description="Изображение превью", default=None)
-    background_image: str | None = Field(description="Изображение фона", default=None)
-    text_id: UUID = Field(description="Идентификатор текста")
-    lang: ExerciseLang = Field(description="Язык упражнения")
-    tags: list[ExerciseTag] = Field(description="Теги упражнения", default=[])
+    id: UUID = Field(description="Идентификатор упражнения", examples=ID_EXAMPLES)
+    seq_number: int = Field(description="Номер упражнения", gt=0, examples=SEQ_NUMBER_EXAMPLES)
+    title: str = Field(description="Название упражнения", max_length=50, examples=TITLE_EXAMPLES)
+    difficulty: int = Field(description="Сложность упражнения", ge=0, examples=DIFFICYLTY_EXAMPLES)
+    preview_image: str | None = Field(
+        description="Изображение превью", default=None, examples=IMAGE_EXAMPLES
+    )
+    background_image: str | None = Field(
+        description="Изображение фона", default=None, examples=IMAGE_EXAMPLES
+    )
+    text_id: UUID = Field(description="Идентификатор текста", examples=ID_EXAMPLES)
+    lang: ExerciseLang = Field(description="Язык упражнения", examples=LANG_EXAMPLES)
+    tags: list[ExerciseTag] = Field(
+        description="Теги упражнения", default=[], examples=TAGS_EXAMPLES
+    )
