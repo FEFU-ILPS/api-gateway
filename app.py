@@ -1,5 +1,6 @@
 import hashlib
 from contextlib import asynccontextmanager
+from random import randbytes
 from typing import Callable
 
 from fastapi import FastAPI, Request
@@ -25,7 +26,7 @@ gateway = FastAPI(lifespan=lifespan)
 
 @gateway.middleware("http")
 async def add_request_hash(request: Request, call_next: Callable):
-    request_hash = hashlib.sha1().hexdigest()[:10]
+    request_hash = hashlib.sha1(randbytes(32)).hexdigest()[:10]
     with logger.contextualize(request_hash=request_hash):
         response = await call_next(request)
         return response
