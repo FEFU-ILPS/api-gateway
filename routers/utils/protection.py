@@ -1,11 +1,13 @@
 import json
 
-import httpx
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 
 from configs import configs
 from schemas.auth import AuthorizedUser
+from service_logging import logger
+
+from .http_proxy import proxy_request
 
 # ! На данный момент это не будет работать непостредственно в Swagger
 # ! URL /auth/login принимает JSON, а не URL-Encoded, что подразумевается
@@ -31,37 +33,41 @@ class RouteProtection:
         """Зависимость FastAPI, которая парсит токен доступа из заголовка Authorization.
         Производит авторизацию пользователя, возвращает информацию о нем и его правах в системе.
         """
-        async with httpx.AsyncClient() as client:
+        logger.info("The authorization process has begun...")
+        async with proxy_request(configs.services.auth.URL) as client:
             try:
-                response = await client.post(
-                    f"{configs.services.auth.URL}/verify",
-                    content=json.dumps({"access_token": token}),
-                )
+                response = await client.post("/verify", content=json.dumps({"access_token": token}))
                 response.raise_for_status()
 
-            except httpx.HTTPStatusError as e:
+            except HTTPException as error:
+                logger.info("The authorization process has been interrupted.")
+
                 raise HTTPException(
-                    status_code=e.response.status_code,
-                    detail=e.response.json().get("detail", "Unknown error."),
+                    status_code=error.status_code,
+                    detail=error.detail,
                     headers={"WWW-Authenticate": "Bearer"},
                 )
 
-        authorized = AuthorizedUser(**response.json())
-        self.__check_rights(authorized)
+        subject = AuthorizedUser(**response.json())
+        logger.info(f"User {subject.name} authenticated.")
+        self.__check_rights(subject)
 
-        return authorized
+        return subject
 
-    def __check_rights(self, authorized: AuthorizedUser) -> None:
+    def __check_rights(self, subject: AuthorizedUser) -> None:
         """Проверка необходимых прав у авторизованного пользователя.
 
         Args:
-            authorized (AuthorizedUser): Данные авторизованного пользователя.
+            subject (AuthorizedUser): Данные авторизованного пользователя.
 
         Raises:
             HTTPException: 403. Доступ запрещён из-за нехватки прав.
         """
-        if not authorized.is_admin and self.only_admin:
+        if not subject.is_admin and self.only_admin:
+            logger.info(f"User{subject.name} does not have access rights to this resource.")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Action is unavailable",
             )
+
+        logger.info(f"User {subject.name} authorized.")

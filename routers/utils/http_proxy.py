@@ -25,6 +25,7 @@ async def proxy_request(service_url: str) -> AsyncGenerator[AsyncClient, None]:
     Yields:
         AsyncGenerator[AsyncClient, None]: Генератор асинхронного клиента httpx.
     """
+    logger.info(f"Proxying a service request to {service_url}")
     async with AsyncClient(base_url=service_url) as client:
         try:
             yield client
@@ -59,7 +60,7 @@ async def proxy_request(service_url: str) -> AsyncGenerator[AsyncClient, None]:
             )
 
 
-async def proxy_sse_request(task_id: str, user_id: str) -> AsyncGenerator[str, None]:
+async def proxy_task_sse_request(task_id: str, user_id: str) -> AsyncGenerator[str, None]:
     """Асинхронный генератор для проксирования SSE-стрима.
 
     Args:
@@ -69,7 +70,10 @@ async def proxy_sse_request(task_id: str, user_id: str) -> AsyncGenerator[str, N
     Yields:
         str: JSON-строка с событием SSE.
     """
-    async with proxy_request(configs.services.manager.URL) as client:
+    url = configs.services.manager.URL
+    logger.info(f"Proxying a service SSE request to {url}")
+
+    async with proxy_request(url) as client:
         async with client.stream(
             "POST", f"/{task_id}/stream", json={"user_id": user_id}, timeout=100
         ) as response:
@@ -77,4 +81,9 @@ async def proxy_sse_request(task_id: str, user_id: str) -> AsyncGenerator[str, N
 
             async for line in response.aiter_lines():
                 if line.startswith("data:"):
-                    yield line[5:].strip()
+                    message = line[5:].strip()
+                    logger.info(f"Recived message: {message}")
+
+                    yield message
+
+    logger.info("SSE stream closed.")
