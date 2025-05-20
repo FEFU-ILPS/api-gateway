@@ -1,8 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
-import httpx
-from fastapi import APIRouter, Body, Depends, HTTPException, Path
+from fastapi import APIRouter, Body, Depends, Path
 
 from configs import configs
 from schemas.exercises import (
@@ -16,9 +15,9 @@ from schemas.exercises import (
 )
 
 from .utils.embeded import Embeded, EmbededResponse
+from .utils.http_proxy import proxy_request
 from .utils.pagination import PaginatedResponse, Pagination
 from .utils.protection import AuthorizedUser, RouteProtection
-from .utils.http_proxy import proxy_request
 
 router = APIRouter(prefix="/exercises")
 
@@ -39,14 +38,30 @@ async def get_exercises(
     return PaginatedResponse[ExerciseResponse](**response.json())
 
 
-# TODO: рассмотерть вынесение функционала embed в отдельный роут `/{uuid}/embeded`
 @router.get("/{uuid}", summary="Получить детальную информацию об упражнении", tags=["Exercises"])
 async def get_exercise(
+    uuid: Annotated[UUID, Path(...)],
+    _: Annotated[AuthorizedUser, Depends(protected)],
+) -> DetailExerciseResponse:
+    """Возвращает полную информацию о конкретном упражнении по его UUID."""
+    async with proxy_request(configs.services.exercises.URL) as client:
+        response = await client.get(f"/{uuid}")
+        response.raise_for_status()
+
+    return DetailExerciseResponse(**response.json())
+
+
+@router.get(
+    "/{uuid}/embeded",
+    summary="Получить детальную информацию об упражнении с дополнительными полями",
+    tags=["Exercises"],
+)
+async def get_embeded_exercise(
     uuid: Annotated[UUID, Path(...)],
     emb: Annotated[Embeded, Depends()],
     _: Annotated[AuthorizedUser, Depends(protected)],
 ) -> EmbededResponse[DetailExerciseResponse]:
-    """Возвращает полную информацию о конкретном упражнении по его UUID."""
+    """Возвращает полную информацию с доплнительными полями о конкретном упражнении по его UUID."""
 
     embed = {}
     entities = emb.get_entities()

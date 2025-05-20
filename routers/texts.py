@@ -1,8 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
-import httpx
-from fastapi import APIRouter, Body, Depends, HTTPException, Path
+from fastapi import APIRouter, Body, Depends, Path
 
 from configs import configs
 from schemas.texts import (
@@ -15,10 +14,9 @@ from schemas.texts import (
     UpdateLearningTextResponse,
 )
 
-from .utils.embeded import Embeded, EmbededResponse
+from .utils.http_proxy import proxy_request
 from .utils.pagination import PaginatedResponse, Pagination
 from .utils.protection import AuthorizedUser, RouteProtection
-from .utils.http_proxy import proxy_request
 
 router = APIRouter(prefix="/texts")
 
@@ -42,18 +40,14 @@ async def get_texts(
 @router.get("/{uuid}", summary="Получить детальную информацию о тексте", tags=["Texts"])
 async def get_text(
     uuid: Annotated[UUID, Path(...)],
-    emb: Annotated[Embeded, Depends()],
     _: Annotated[AuthorizedUser, Depends(protected)],
-) -> EmbededResponse[DetailLearningTextResponse]:
+) -> DetailLearningTextResponse:
     """Возвращает полную информацию о конкретном тексте по его UUID."""
-    embed = {}
-    entities = emb.get_entities()
     async with proxy_request(configs.services.texts.URL) as client:
         response = await client.get(f"/{uuid}")
         response.raise_for_status()
 
-    item = DetailLearningTextResponse(**response.json())
-    return EmbededResponse[DetailLearningTextResponse](item=item, embeded=embed)
+    return DetailLearningTextResponse(**response.json())
 
 
 @router.post("/", summary="Добавить текст в систему", tags=["Texts"])

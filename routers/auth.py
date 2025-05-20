@@ -1,5 +1,4 @@
-import httpx
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body
 
 from configs import configs
 from schemas.auth import (

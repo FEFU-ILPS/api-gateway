@@ -1,8 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
-import httpx
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Path, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Path, UploadFile
 from sse_starlette.sse import EventSourceResponse
 
 from configs import configs
