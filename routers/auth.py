@@ -1,5 +1,4 @@
-import httpx
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body
 
 from configs import configs
 from schemas.auth import (
@@ -8,6 +7,9 @@ from schemas.auth import (
     RegisterUserRequest,
     RegisterUserResponse,
 )
+from service_logging import logger
+
+from .utils.http_proxy import proxy_request
 
 router = APIRouter(prefix="/auth")
 
@@ -15,36 +17,22 @@ router = APIRouter(prefix="/auth")
 @router.post("/login", summary="Аутентификация пользователя", tags=["Auth"])
 async def athenticate_user(user_data: AuthenticateUserRequest) -> AuthenticateUserResponse:
     """Аутентифицирует пользователя в системе ILPS. Возвращает JWT токен доступа в случае успеха."""
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.post(
-                f"{configs.services.auth.URL}/login",
-                content=user_data.model_dump_json(),
-            )
-            response.raise_for_status()
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=e.response.json().get("detail", "Unknown error"),
-            )
+    logger.info("User authentication...")
+    async with proxy_request(configs.services.auth.URL) as client:
+        response = await client.post("/login", content=user_data.model_dump_json())
+        response.raise_for_status()
 
-        return AuthenticateUserResponse(**response.json())
+    logger.success("Authentication is complete. Issuing a JWT token.")
+    return AuthenticateUserResponse(**response.json())
 
 
 @router.post("/register", summary="Регистрация пользователя", tags=["Auth"])
 async def register_user(user_data: RegisterUserRequest = Body()) -> RegisterUserResponse:
     """Регистрирует нового пользователя в системе ILPS."""
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.post(
-                f"{configs.services.auth.URL}/register",
-                content=user_data.model_dump_json(),
-            )
-            response.raise_for_status()
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=e.response.json().get("detail", "Unknown error"),
-            )
+    logger.info("User registration...")
+    async with proxy_request(configs.services.auth.URL) as client:
+        response = await client.post("/register", content=user_data.model_dump_json())
+        response.raise_for_status()
 
-        return RegisterUserResponse(**response.json())
+    logger.success("User has been successfully registered.")
+    return RegisterUserResponse(**response.json())

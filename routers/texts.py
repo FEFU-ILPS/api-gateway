@@ -1,8 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
-import httpx
-from fastapi import APIRouter, Body, Depends, HTTPException, Path
+from fastapi import APIRouter, Body, Depends, Path
 
 from configs import configs
 from schemas.texts import (
@@ -14,8 +13,9 @@ from schemas.texts import (
     UpdateLearningTextRequest,
     UpdateLearningTextResponse,
 )
+from service_logging import logger
 
-from .utils.embeded import Embeded, EmbededResponse
+from .utils.http_proxy import proxy_request
 from .utils.pagination import PaginatedResponse, Pagination
 from .utils.protection import AuthorizedUser, RouteProtection
 
@@ -31,49 +31,32 @@ async def get_texts(
     _: Annotated[AuthorizedUser, Depends(protected)],
 ) -> PaginatedResponse[LearningTextResponse]:
     """Возвращает полный список всех обучающих текстов с краткой информацией."""
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.get(
-                f"{configs.services.texts.URL}/",
-                params={
-                    "page": pg.page,
-                    "size": pg.size,
-                },
-            )
-            response.raise_for_status()
+    logger.info("Getting the text list...")
+    async with proxy_request(configs.services.texts.URL) as client:
+        response = await client.get("/", params={"page": pg.page, "size": pg.size})
+        response.raise_for_status()
 
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=e.response.json().get("detail", "Unknown error"),
-            )
+    paginated_items = PaginatedResponse[LearningTextResponse](**response.json())
+    logger.success(f"Received {len(paginated_items.items)} texts.")
 
-        return PaginatedResponse[LearningTextResponse](**response.json())
+    return paginated_items
 
 
 @router.get("/{uuid}", summary="Получить детальную информацию о тексте", tags=["Texts"])
 async def get_text(
     uuid: Annotated[UUID, Path(...)],
-    emb: Annotated[Embeded, Depends()],
     _: Annotated[AuthorizedUser, Depends(protected)],
-) -> EmbededResponse[DetailLearningTextResponse]:
+) -> DetailLearningTextResponse:
     """Возвращает полную информацию о конкретном тексте по его UUID."""
-
-    embed = {}
-    entities = emb.get_entities()
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.get(f"{configs.services.texts.URL}/{uuid}")
-            response.raise_for_status()
-
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=e.response.json().get("detail", "Unknown error"),
-            )
+    logger.info("Getting information about a text...")
+    async with proxy_request(configs.services.texts.URL) as client:
+        response = await client.get(f"/{uuid}")
+        response.raise_for_status()
 
     item = DetailLearningTextResponse(**response.json())
-    return EmbededResponse[DetailLearningTextResponse](item=item, embeded=embed)
+    logger.success(f"Text received: {item.id}")
+
+    return item
 
 
 @router.post("/", summary="Добавить текст в систему", tags=["Texts"])
@@ -82,21 +65,15 @@ async def create_text(
     _: Annotated[AuthorizedUser, Depends(admin_protected)],
 ) -> CreateLearningTextResponse:
     """Добавляет новый текст в систему."""
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.post(
-                f"{configs.services.texts.URL}/",
-                content=data.model_dump_json(exclude_none=True),
-            )
-            response.raise_for_status()
+    logger.info("Creating a text...")
+    async with proxy_request(configs.services.texts.URL) as client:
+        response = await client.post("/", content=data.model_dump_json(exclude_none=True))
+        response.raise_for_status()
 
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=e.response.json().get("detail", "Unknown error"),
-            )
+    item = CreateLearningTextResponse(**response.json())
+    logger.success(f"Text has been created: {item.id}")
 
-    return CreateLearningTextResponse(**response.json())
+    return item
 
 
 @router.delete("/{uuid}", summary="Удалить текст из системы", tags=["Texts"])
@@ -105,18 +82,15 @@ async def delete_text(
     _: Annotated[AuthorizedUser, Depends(admin_protected)],
 ) -> DeleteLearningTextResponse:
     """Удаляет текст из системы по его UUID."""
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.delete(f"{configs.services.texts.URL}/{uuid}")
-            response.raise_for_status()
+    logger.info("Deleting a text...")
+    async with proxy_request(configs.services.texts.URL) as client:
+        response = await client.delete(f"/{uuid}")
+        response.raise_for_status()
 
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=e.response.json().get("detail", "Unknown error"),
-            )
+    item = DeleteLearningTextResponse(**response.json())
+    logger.success(f"Text has been deleted: {item.id}")
 
-    return DeleteLearningTextResponse(**response.json())
+    return item
 
 
 @router.patch("/{uuid}", summary="Обновить данные о тексте", tags=["Texts"])
@@ -126,18 +100,12 @@ async def update_text(
     _: Annotated[AuthorizedUser, Depends(admin_protected)],
 ) -> UpdateLearningTextResponse:
     """Обновляет данные текста по его UUID."""
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.patch(
-                f"{configs.services.texts.URL}/{uuid}",
-                content=data.model_dump_json(exclude_none=True),
-            )
-            response.raise_for_status()
+    logger.info("Updating a text...")
+    async with proxy_request(configs.services.texts.URL) as client:
+        response = await client.patch(f"/{uuid}", content=data.model_dump_json(exclude_none=True))
+        response.raise_for_status()
 
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=e.response.json().get("detail", "Unknown error"),
-            )
+    item = UpdateLearningTextResponse(**response.json())
+    logger.success(f"Text has been updated: {item.id}")
 
-    return UpdateLearningTextResponse(**response.json())
+    return item

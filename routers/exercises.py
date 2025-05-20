@@ -1,8 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
-import httpx
-from fastapi import APIRouter, Body, Depends, HTTPException, Path
+from fastapi import APIRouter, Body, Depends, Path
 
 from configs import configs
 from schemas.exercises import (
@@ -14,8 +13,10 @@ from schemas.exercises import (
     UpdateExerciseRequest,
     UpdateExerciseResponse,
 )
+from service_logging import logger
 
-from .utils.embeded import Embeded, EmbededResponse
+from .utils.embeded import Embedded, EmbeddedResponse
+from .utils.http_proxy import proxy_request
 from .utils.pagination import PaginatedResponse, Pagination
 from .utils.protection import AuthorizedUser, RouteProtection
 
@@ -31,55 +32,66 @@ async def get_exercises(
     _: Annotated[AuthorizedUser, Depends(protected)],
 ) -> PaginatedResponse[ExerciseResponse]:
     """Постранично возвращает список всех обучающих упражнений."""
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.get(
-                f"{configs.services.exercises.URL}/",
-                params={
-                    "page": pg.page,
-                    "size": pg.size,
-                },
-            )
-            response.raise_for_status()
+    logger.info("Getting the exercise list...")
+    async with proxy_request(configs.services.exercises.URL) as client:
+        response = await client.get("/", params={"page": pg.page, "size": pg.size})
+        response.raise_for_status()
 
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=e.response.json().get("detail", "Unknown error"),
-            )
+    paginated_items = PaginatedResponse[ExerciseResponse](**response.json())
+    logger.success(f"Received {len(paginated_items.items)} exercises.")
 
-        return PaginatedResponse[ExerciseResponse](**response.json())
+    return paginated_items
 
 
-# TODO: рассмотерть вынесение функционала embed в отдельный роут `/{uuid}/embeded`
 @router.get("/{uuid}", summary="Получить детальную информацию об упражнении", tags=["Exercises"])
 async def get_exercise(
     uuid: Annotated[UUID, Path(...)],
-    emb: Annotated[Embeded, Depends()],
     _: Annotated[AuthorizedUser, Depends(protected)],
-) -> EmbededResponse[DetailExerciseResponse]:
+) -> DetailExerciseResponse:
     """Возвращает полную информацию о конкретном упражнении по его UUID."""
+    logger.info("Getting information about an exercise...")
+    async with proxy_request(configs.services.exercises.URL) as client:
+        response = await client.get(f"/{uuid}")
+        response.raise_for_status()
+
+    item = DetailExerciseResponse(**response.json())
+    logger.success(f"Exercise received: ({item.seq_number}){item.id}")
+
+    return item
+
+
+@router.get(
+    "/{uuid}/embedded",
+    summary="Получить детальную информацию об упражнении с дополнительными полями",
+    tags=["Exercises"],
+)
+async def get_embedded_exercise(
+    uuid: Annotated[UUID, Path(...)],
+    emb: Annotated[Embedded, Depends()],
+    _: Annotated[AuthorizedUser, Depends(protected)],
+) -> EmbeddedResponse[DetailExerciseResponse]:
+    """Возвращает полную информацию с доплнительными полями о конкретном упражнении по его UUID."""
 
     embed = {}
     entities = emb.get_entities()
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.get(f"{configs.services.exercises.URL}/{uuid}")
+
+    logger.info("Getting embedded information about an exercise...")
+    async with proxy_request(configs.services.exercises.URL) as client:
+        response = await client.get(f"/{uuid}")
+        response.raise_for_status()
+        item = DetailExerciseResponse(**response.json())
+
+    logger.info("Getting embedding text information...")
+    if "text" in entities:
+        async with proxy_request(configs.services.texts.URL) as client:
+            response = await client.get(f"/{item.text_id}")
             response.raise_for_status()
-            item = DetailExerciseResponse(**response.json())
+            embed["text"] = response.json()
 
-            if "text" in entities:
-                response = await client.get(f"{configs.services.texts.URL}/{item.text_id}")
-                response.raise_for_status()
-                embed["text"] = response.json()
+    embedded_item = EmbeddedResponse[DetailExerciseResponse](item=item, embedded=embed)
+    logger.success(f"Exercise received: ({embedded_item.item.seq_number}){embedded_item.item.id}")
 
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=e.response.json().get("detail", "Unknown error"),
-            )
-
-    return EmbededResponse[DetailExerciseResponse](item=item, embeded=embed)
+    return embedded_item
 
 
 @router.post("/", summary="Добавить упражнение в систему", tags=["Exercises"])
@@ -88,21 +100,15 @@ async def create_exercise(
     _: Annotated[AuthorizedUser, Depends(admin_protected)],
 ) -> CreateExerciseResponse:
     """Добавляет новое упражнение в систему."""
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.post(
-                f"{configs.services.exercises.URL}/",
-                content=data.model_dump_json(exclude_none=True),
-            )
-            response.raise_for_status()
+    logger.info("Creating an exercise...")
+    async with proxy_request(configs.services.exercises.URL) as client:
+        response = await client.post("/", content=data.model_dump_json(exclude_none=True))
+        response.raise_for_status()
 
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=e.response.json().get("detail", "Unknown error"),
-            )
+    item = CreateExerciseResponse(**response.json())
+    logger.success(f"Exercise has been created: ({item.seq_number}){item.id}")
 
-    return CreateExerciseResponse(**response.json())
+    return item
 
 
 @router.delete("/{uuid}", summary="Удалить упражнение из системы", tags=["Exercises"])
@@ -111,18 +117,15 @@ async def delete_exercise(
     _: Annotated[AuthorizedUser, Depends(admin_protected)],
 ) -> DeleteExerciseResponse:
     """Удаляет упражнение из системы по его UUID."""
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.delete(f"{configs.services.exercises.URL}/{uuid}")
-            response.raise_for_status()
+    logger.info("Deleting an exercise...")
+    async with proxy_request(configs.services.exercises.URL) as client:
+        response = await client.delete(f"/{uuid}")
+        response.raise_for_status()
 
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=e.response.json().get("detail", "Unknown error"),
-            )
+    item = DeleteExerciseResponse(**response.json())
+    logger.success(f"Exercise has been deleted: ({item.seq_number}){item.id}")
 
-    return DeleteExerciseResponse(**response.json())
+    return item
 
 
 @router.patch("/{uuid}", summary="Обновить данные о тексте", tags=["Exercises"])
@@ -132,18 +135,12 @@ async def update_exercise(
     _: Annotated[AuthorizedUser, Depends(admin_protected)],
 ) -> UpdateExerciseResponse:
     """Обновляет данные текста по его UUID."""
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.patch(
-                f"{configs.services.exercises.URL}/{uuid}",
-                content=data.model_dump_json(exclude_none=True),
-            )
-            response.raise_for_status()
+    logger.info("Updating an exercise...")
+    async with proxy_request(configs.services.exercises.URL) as client:
+        response = await client.patch(f"/{uuid}", content=data.model_dump_json(exclude_none=True))
+        response.raise_for_status()
 
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=e.response.json().get("detail", "Unknown error"),
-            )
+    item = UpdateExerciseResponse(**response.json())
+    logger.success(f"Exercise has been updated: ({item.seq_number}){item.id}")
 
-    return UpdateExerciseResponse(**response.json())
+    return item

@@ -1,15 +1,15 @@
 from typing import Annotated
 from uuid import UUID
 
-import httpx
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Path, UploadFile
+from fastapi import APIRouter, Depends, File, Form, Path, UploadFile
 from sse_starlette.sse import EventSourceResponse
 
 from configs import configs
 from schemas.tasks import CreateTaskResponse, DetailTaskResponse, TasksResponse
+from service_logging import logger
 
+from .utils.http_proxy import proxy_request, proxy_task_sse_request
 from .utils.protection import AuthorizedUser, RouteProtection
-from .utils.sse_proxy import sse_proxy
 
 router = APIRouter(prefix="/tasks")
 
@@ -26,42 +26,33 @@ async def create_task(
     """Создаёт задачу на предобработку и транскрибирование аудиофайла.
     Возвращает UUID созданой задачи с ответом 200, выполняя её в фоне.
     """
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.post(
-                f"{configs.services.manager.URL}/transcribe",
-                data={"title": title, "text_id": str(text_id), "user_id": str(auth.id)},
-                files={"file": (file.filename, file.file, file.content_type)},
-            )
-            response.raise_for_status()
+    logger.info("Creating a pronunciation assessment task...")
+    async with proxy_request(configs.services.manager.URL) as client:
+        response = await client.post(
+            "/transcribe",
+            data={"title": title, "text_id": str(text_id), "user_id": str(auth.id)},
+            files={"file": (file.filename, file.file, file.content_type)},
+        )
+        response.raise_for_status()
 
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=e.response.json().get("detail", "Unknown error"),
-            )
+    item = CreateTaskResponse(**response.json())
+    logger.success(f"Task has been created: {item.id}")
 
-    return CreateTaskResponse(**response.json())
+    return item
 
 
 @router.get("/", summary="Получить список задач", tags=["Tasks"])
 async def get_tasks(auth: Annotated[AuthorizedUser, Depends(protected)]) -> list[TasksResponse]:
     """Получает список всех задач, когда либо созданных в системе ILPS."""
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.post(
-                f"{configs.services.manager.URL}/",
-                json={"user_id": str(auth.id)},
-            )
-            response.raise_for_status()
+    logger.info("Getting the task list...")
+    async with proxy_request(configs.services.manager.URL) as client:
+        response = await client.post("/", json={"user_id": str(auth.id)})
+        response.raise_for_status()
 
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=e.response.json().get("detail", "Unknown error"),
-            )
+    items = [TasksResponse(**task) for task in response.json()]
+    logger.success(f"Received {len(items)} tasks.")
 
-    return [TasksResponse(**task) for task in response.json()]
+    return items
 
 
 @router.get("/{uuid}", summary="Получить актуальную информацию о задаче", tags=["Tasks"])
@@ -72,21 +63,14 @@ async def get_task(
     """Получает текущую информацию по UUID указаной задачи.
     Возвращает полную информацию о задача.
     """
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.post(
-                f"{configs.services.manager.URL}/{uuid}",
-                json={"user_id": str(auth.id)},
-            )
-            response.raise_for_status()
+    logger.info("Getting information about a task...")
+    async with proxy_request(configs.services.manager.URL) as client:
+        response = await client.post(f"/{uuid}", json={"user_id": str(auth.id)})
+        response.raise_for_status()
 
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=e.response.json().get("detail", "Unknown error"),
-            )
-
-    return DetailTaskResponse(**response.json())
+    item = DetailTaskResponse(**response.json())
+    logger.success(f"Task received: {item.id}")
+    return
 
 
 @router.get("/{uuid}/stream", summary="Получать обновления статуса задачи потоком", tags=["Tasks"])
@@ -97,5 +81,6 @@ async def monitor_task(
     """Получает информацию об обновлениях статуса задачи
     в реальном времени, используя протокол SSE стриминга.
     """
-    event_generator = sse_proxy(str(uuid), str(auth.id))
+    logger.info("Streaming task status updates....")
+    event_generator = proxy_task_sse_request(str(uuid), str(auth.id))
     return EventSourceResponse(event_generator)
