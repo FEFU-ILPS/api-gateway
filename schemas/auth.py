@@ -1,67 +1,80 @@
 import re
-from typing import Annotated
 from uuid import UUID
 
+from fastapi import Body
 from pydantic import BaseModel, Field, field_validator
-
-from .examples.auth import (
-    EMAIL_EXAMPLES,
-    FLAG_EXAMPLES,
-    ID_EXAMPLES,
-    JWT_ACCESS_TOKEN_EXAMPLES,
-    JWT_TOKEN_TYPE_EXAMPLES,
+from examples import (
     NAME_EXAMPLES,
     PASSWORD_EXAMPLES,
+    EMAIL_EXAMPLES,
+    ID_EXAMPLES,
+    TOKEN_EXAMPLES,
+    JWT_EXAMPLES,
 )
-
-Flag = Annotated[bool, Field(examples=FLAG_EXAMPLES)]
-UserID = Annotated[UUID, Field(description="Идентификатор пользователя", examples=ID_EXAMPLES)]
-UserName = Annotated[
-    str,
-    Field(description="Имя пользователя", max_length=255, examples=NAME_EXAMPLES),
-]
-UserEmail = Annotated[
-    str,
-    Field(description="Почта пользователя", max_length=40, min_length=8, examples=EMAIL_EXAMPLES),
-]
-UserPassword = Annotated[
-    str,
-    Field(
-        description="Пароль пользователя", max_length=40, min_length=8, examples=PASSWORD_EXAMPLES
-    ),
-]
-JWTAccessToken = Annotated[
-    str, Field(description="Токен доступа", examples=JWT_ACCESS_TOKEN_EXAMPLES)
-]
-JWTTokenType = Annotated[
-    str, Field(description="Тип токена доступа", examples=JWT_TOKEN_TYPE_EXAMPLES)
-]
 
 
 class AuthenticateUserRequest(BaseModel):
-    username: UserName
-    password: UserPassword
+    """Схема аутентифицированного пользователя."""
+
+    username: str = Body(max_length=255, description="Имя пользователя", examples=NAME_EXAMPLES)
+    password: str = Body(
+        max_length=40, description="Пароль пользователя", min_length=8, examples=PASSWORD_EXAMPLES
+    )
 
 
 class AuthenticateUserResponse(BaseModel):
-    access_token: JWTAccessToken
-    token_type: JWTTokenType = Field(default="Bearer")
+    """Схема ответа аутентифицированного пользователя."""
+
+    access_token: str = Field(description="JWT токен доступа", examples=JWT_EXAMPLES)
+    token_type: str = Field(
+        description="Тип токена доступа", default="Bearer", examples=TOKEN_EXAMPLES
+    )
 
 
 class RegisterUserRequest(BaseModel):
-    name: UserName
-    email: UserEmail
-    password: UserPassword
+    """Схема запроса регистрации пользователя."""
+
+    name: str = Field(description="Имя пользователя", max_length=255, examples=NAME_EXAMPLES)
+    email: str = Field(
+        description="Электронная почта пользователя", max_length=255, examples=EMAIL_EXAMPLES
+    )
+    password: str = Field(
+        description="Пароль пользователя", max_length=40, min_length=8, examples=PASSWORD_EXAMPLES
+    )
 
     @field_validator("email")
-    def validate_email(cls, value):
+    def validate_email(cls, value: str) -> str:
+        """Валидатор электронной почты пользователя.
+
+        Args:
+            value (str): Невалидированное значение.
+
+        Raises:
+            ValueError: Неверный формат почты.
+
+        Returns:
+            str: Валидированное значение.
+        """
         email_regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+
         if not re.match(email_regex, value):
             raise ValueError("Invalid email format")
+
         return value
 
     @field_validator("password")
-    def validate_password(cls, value):
+    def validate_password(cls, value: str) -> str:
+        """Валидатор пароля игрока.
+
+        Args:
+            value (str): Невалидированное значение.
+
+        Raises:
+            ValueError: Неверный формат пароля.
+
+        Returns:
+            str: Валидированное значение.
+        """
         if not re.search(r"\d", value):
             raise ValueError("Password must contain at least one digit")
 
@@ -75,11 +88,21 @@ class RegisterUserRequest(BaseModel):
 
 
 class RegisterUserResponse(BaseModel):
-    id: UserID
-    name: UserName
+    """Схема ответа регистрации пользователя."""
+
+    id: UUID = Field(description="Идентификатор пользователя", examples=ID_EXAMPLES)
+    name: str = Field(description="Имя пользователя", max_length=255, examples=NAME_EXAMPLES)
 
 
-class AuthorizedUser(BaseModel):
-    id: UserID
-    name: UserName
-    is_admin: Flag = Field(description="Флаг прав адиминистрирования")
+class AuthorizeUserRequest(BaseModel):
+    """Схема запроса авторизации пользователя."""
+
+    access_token: str = Field(description="JWT токен доступа", examples=JWT_EXAMPLES)
+
+
+class AuthorizeUserResponse(BaseModel):
+    """Схема ответа авторизации пользователя."""
+
+    id: UUID = Field(description="Идентификатор пользователя", examples=ID_EXAMPLES)
+    name: str = Field(description="Имя пользователя", max_length=255, examples=NAME_EXAMPLES)
+    is_admin: bool = Field(description="Флаг админ прав", examples=[True, False])

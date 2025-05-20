@@ -1,11 +1,9 @@
-from typing import Final
-
-ID_EXAMPLES: Final[list[str]] = [
+ID_EXAMPLES = [
     "d08191a1-3a4f-48e3-be3b-fc3bb31536af",
     "3d5dc460-5db7-4dd0-9d4e-3cd825ebaebd",
 ]
 
-STATUS_EXAMPLES: Final[list[str]] = [
+STATUS_EXAMPLES = [
     "created",
     "started",
     "preprocessing",
@@ -15,12 +13,12 @@ STATUS_EXAMPLES: Final[list[str]] = [
     "unknown",
 ]
 
-RESULT_EXAMPLES: Final[list[str]] = [
+RESULT_EXAMPLES = [
     "Dɑːɹk hæd hæd jɚ jɚ ʃi suːt suːt ʃi hæd jɚ jɚ ʃi",
     "hæd suːt jɚ jɚ ʃi dɑːɹk ʃi hæd ʃi dɑːɹk ʃi hæd hæd hæd suːt jɚ suːt",
 ]
 
-ACCURACY_EXAMPLES: Final[list[float]] = [
+ACCURACY_EXAMPLES = [
     90.0,
     22.0,
     0.02,
@@ -28,7 +26,7 @@ ACCURACY_EXAMPLES: Final[list[float]] = [
 ]
 
 
-MISTAKES_EXAMPLES: Final[list[list[dict[str, int | str | None]]]] = [
+MISTAKES_EXAMPLES = [
     [
         {"position": 6, "reference": "ɔːɹ", "actual": "oʊ", "type": "Replacement"},
         {"position": 14, "reference": "n", "actual": None, "type": "Deletion"},
@@ -40,7 +38,7 @@ MISTAKES_EXAMPLES: Final[list[list[dict[str, int | str | None]]]] = [
     ]
 ]
 
-COMMENTS_EXAMPLES: Final[list[str]] = [
+COMMENTS_EXAMPLES = [
     "No comment.",
     "Completed manualy.",
 ]
