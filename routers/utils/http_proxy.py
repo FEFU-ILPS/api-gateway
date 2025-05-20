@@ -4,6 +4,8 @@ from typing import AsyncGenerator
 
 from fastapi import HTTPException, status
 from httpx import AsyncClient, ConnectError, ConnectTimeout, HTTPStatusError
+
+from configs import configs
 from service_logging import logger
 
 
@@ -55,3 +57,24 @@ async def proxy_request(service_url: str) -> AsyncGenerator[AsyncClient, None]:
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail=detail,
             )
+
+
+async def proxy_sse_request(task_id: str, user_id: str) -> AsyncGenerator[str, None]:
+    """Асинхронный генератор для проксирования SSE-стрима.
+
+    Args:
+        task_id (str): ID задачи для подключения к стриму.
+        user_id (str): ID пользователя, создавшего задачу.
+
+    Yields:
+        str: JSON-строка с событием SSE.
+    """
+    async with proxy_request(configs.services.manager.URL) as client:
+        async with client.stream(
+            "POST", f"/{task_id}/stream", json={"user_id": user_id}, timeout=100
+        ) as response:
+            response.raise_for_status()
+
+            async for line in response.aiter_lines():
+                if line.startswith("data:"):
+                    yield line[5:].strip()

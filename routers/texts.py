@@ -18,6 +18,7 @@ from schemas.texts import (
 from .utils.embeded import Embeded, EmbededResponse
 from .utils.pagination import PaginatedResponse, Pagination
 from .utils.protection import AuthorizedUser, RouteProtection
+from .utils.http_proxy import proxy_request
 
 router = APIRouter(prefix="/texts")
 
@@ -31,24 +32,11 @@ async def get_texts(
     _: Annotated[AuthorizedUser, Depends(protected)],
 ) -> PaginatedResponse[LearningTextResponse]:
     """Возвращает полный список всех обучающих текстов с краткой информацией."""
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.get(
-                f"{configs.services.texts.URL}/",
-                params={
-                    "page": pg.page,
-                    "size": pg.size,
-                },
-            )
-            response.raise_for_status()
+    async with proxy_request(configs.services.texts.URL) as client:
+        response = await client.get("/", params={"page": pg.page, "size": pg.size})
+        response.raise_for_status()
 
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=e.response.json().get("detail", "Unknown error"),
-            )
-
-        return PaginatedResponse[LearningTextResponse](**response.json())
+    return PaginatedResponse[LearningTextResponse](**response.json())
 
 
 @router.get("/{uuid}", summary="Получить детальную информацию о тексте", tags=["Texts"])
@@ -58,19 +46,11 @@ async def get_text(
     _: Annotated[AuthorizedUser, Depends(protected)],
 ) -> EmbededResponse[DetailLearningTextResponse]:
     """Возвращает полную информацию о конкретном тексте по его UUID."""
-
     embed = {}
     entities = emb.get_entities()
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.get(f"{configs.services.texts.URL}/{uuid}")
-            response.raise_for_status()
-
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=e.response.json().get("detail", "Unknown error"),
-            )
+    async with proxy_request(configs.services.texts.URL) as client:
+        response = await client.get(f"/{uuid}")
+        response.raise_for_status()
 
     item = DetailLearningTextResponse(**response.json())
     return EmbededResponse[DetailLearningTextResponse](item=item, embeded=embed)
@@ -82,19 +62,9 @@ async def create_text(
     _: Annotated[AuthorizedUser, Depends(admin_protected)],
 ) -> CreateLearningTextResponse:
     """Добавляет новый текст в систему."""
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.post(
-                f"{configs.services.texts.URL}/",
-                content=data.model_dump_json(exclude_none=True),
-            )
-            response.raise_for_status()
-
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=e.response.json().get("detail", "Unknown error"),
-            )
+    async with proxy_request(configs.services.texts.URL) as client:
+        response = await client.post("/", content=data.model_dump_json(exclude_none=True))
+        response.raise_for_status()
 
     return CreateLearningTextResponse(**response.json())
 
@@ -105,16 +75,9 @@ async def delete_text(
     _: Annotated[AuthorizedUser, Depends(admin_protected)],
 ) -> DeleteLearningTextResponse:
     """Удаляет текст из системы по его UUID."""
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.delete(f"{configs.services.texts.URL}/{uuid}")
-            response.raise_for_status()
-
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=e.response.json().get("detail", "Unknown error"),
-            )
+    async with proxy_request(configs.services.texts.URL) as client:
+        response = await client.delete(f"/{uuid}")
+        response.raise_for_status()
 
     return DeleteLearningTextResponse(**response.json())
 
@@ -126,18 +89,8 @@ async def update_text(
     _: Annotated[AuthorizedUser, Depends(admin_protected)],
 ) -> UpdateLearningTextResponse:
     """Обновляет данные текста по его UUID."""
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.patch(
-                f"{configs.services.texts.URL}/{uuid}",
-                content=data.model_dump_json(exclude_none=True),
-            )
-            response.raise_for_status()
-
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(
-                status_code=e.response.status_code,
-                detail=e.response.json().get("detail", "Unknown error"),
-            )
+    async with proxy_request(configs.services.texts.URL) as client:
+        response = await client.patch(f"/{uuid}", content=data.model_dump_json(exclude_none=True))
+        response.raise_for_status()
 
     return UpdateLearningTextResponse(**response.json())
