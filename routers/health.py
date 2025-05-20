@@ -2,7 +2,7 @@ import datetime
 import platform
 import socket
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import JSONResponse
 
 from service_logging import logger
@@ -29,5 +29,8 @@ async def health_check() -> JSONResponse:
         logger.success("Service health OK.")
         return JSONResponse(content=health_status)
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Health check failed: {str(e)}")
+    except Exception as error:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Health check failed: {str(error)}",
+        )
