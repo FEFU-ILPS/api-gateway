@@ -1,4 +1,3 @@
-from typing import Annotated, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -10,57 +9,73 @@ from .examples.texts import (
     VALUE_EXAMPLES,
 )
 
-TextID = Annotated[UUID, Field(description="Уникальный идентификатор", examples=ID_EXAMPLES)]
-TextTitle = Annotated[str, Field(max_length=100, description="Название", examples=TITLE_EXAMPLES)]
-TextValue = Annotated[str, Field(description="Содержание", examples=VALUE_EXAMPLES)]
-TextTranscription = Annotated[
-    str, Field(description="Транскрипционная запись", examples=TRANSCRIPTION_EXAMPLES)
-]
+
+class BaseSchema(BaseModel):
+    """Базовая схема данных."""
+
+    model_config = ConfigDict(from_attributes=True)
 
 
-class LearningTextResponse(BaseModel):
+class LearningTextResponse(BaseSchema):
     """Данные, отправляемые в ответ на запрос получения всех текстов."""
 
-    model_config = ConfigDict(from_attributes=True)
-
-    id: TextID
-    title: TextTitle
+    id: UUID = Field(description="Уникальный идентификатор", examples=ID_EXAMPLES)
+    title: str = Field(max_length=100, description="Название", examples=TITLE_EXAMPLES)
 
 
-class DetailLearningTextResponse(LearningTextResponse):
+class DetailLearningTextResponse(BaseSchema):
     """Данные, отправляемые в ответ на запрос получения деталей о тексте."""
 
-    value: TextValue
-    transcription: TextTranscription
+    id: UUID = Field(description="Уникальный идентификатор", examples=ID_EXAMPLES)
+    title: str = Field(max_length=100, description="Название", examples=TITLE_EXAMPLES)
+    value: str = Field(description="Содержание", examples=VALUE_EXAMPLES)
+    transcription: str = Field(
+        description="Транскрипционная запись", examples=TRANSCRIPTION_EXAMPLES
+    )
 
 
-class CreateLearningTextRequest(BaseModel):
+class CreateLearningTextRequest(BaseSchema):
     """Данные, требующиеся для создания/добавления текста в систему."""
 
-    title: TextTitle
-    value: TextValue
-    transcription: TextTranscription
+    title: str = Field(max_length=100, description="Название", examples=TITLE_EXAMPLES)
+    value: str = Field(description="Содержание", examples=VALUE_EXAMPLES)
+    transcription: str = Field(
+        description="Транскрипционная запись", examples=TRANSCRIPTION_EXAMPLES
+    )
 
 
-class CreateLearningTextResponse(BaseModel):
+class CreateLearningTextResponse(BaseSchema):
     """Данные, отправляемые в ответ на запрос добавления текста."""
 
-    model_config = ConfigDict(from_attributes=True)
-
-    id: TextID
+    id: UUID = Field(description="Уникальный идентификатор", examples=ID_EXAMPLES)
 
 
-class DeleteLearningTextResponse(CreateLearningTextResponse):
+class DeleteLearningTextResponse(BaseSchema):
     """Данные, отправляемые в ответ на запрос удаления текста."""
 
+    id: UUID = Field(description="Уникальный идентификатор", examples=ID_EXAMPLES)
 
-class UpdateLearningTextRequest(BaseModel):
+
+class UpdateLearningTextRequest(BaseSchema):
     """Данные, требующиеся для обновления данных о тексте."""
 
-    title: Optional[TextTitle] = None
-    value: Optional[TextValue] = None
-    transcription: Optional[TextTranscription] = None
+    title: UUID | None = Field(
+        description="Уникальный идентификатор", default=None, examples=ID_EXAMPLES
+    )
+    value: str | None = Field(description="Содержание", examples=VALUE_EXAMPLES)
+    transcription: str | None = Field(
+        description="Транскрипционная запись", examples=TRANSCRIPTION_EXAMPLES
+    )
 
 
 class UpdateLearningTextResponse(DetailLearningTextResponse):
     """Данные, отправляемые в ответ на запрос обновления данных о тексте."""
+
+    id: UUID = Field(description="Уникальный идентификатор", default=None, examples=ID_EXAMPLES)
+    title: str = Field(
+        max_length=100, description="Название", default=None, examples=TITLE_EXAMPLES
+    )
+    value: str = Field(description="Содержание", default=None, examples=VALUE_EXAMPLES)
+    transcription: str = Field(
+        description="Транскрипционная запись", default=None, examples=TRANSCRIPTION_EXAMPLES
+    )
