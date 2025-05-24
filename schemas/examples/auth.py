@@ -5,8 +5,8 @@ ID_EXAMPLES = [
 
 NAME_EXAMPLES = [
     "nagibator_rus",
-    "popa_osla",
-    "William_Hanson",
+    "Oidaho",
+    "Rhonin-D",
     "Big_Floppa",
 ]
 

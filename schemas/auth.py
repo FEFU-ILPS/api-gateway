@@ -3,13 +3,15 @@ from uuid import UUID
 
 from fastapi import Body
 from pydantic import BaseModel, Field, field_validator
-from examples import (
-    NAME_EXAMPLES,
-    PASSWORD_EXAMPLES,
+
+from .examples.auth import (
     EMAIL_EXAMPLES,
     ID_EXAMPLES,
-    TOKEN_EXAMPLES,
-    JWT_EXAMPLES,
+    JWT_ACCESS_TOKEN_EXAMPLES,
+    JWT_TOKEN_TYPE_EXAMPLES,
+    NAME_EXAMPLES,
+    PASSWORD_EXAMPLES,
+    FLAG_EXAMPLES,
 )
 
 
@@ -25,9 +27,9 @@ class AuthenticateUserRequest(BaseModel):
 class AuthenticateUserResponse(BaseModel):
     """Схема ответа аутентифицированного пользователя."""
 
-    access_token: str = Field(description="JWT токен доступа", examples=JWT_EXAMPLES)
+    access_token: str = Field(description="JWT токен доступа", examples=JWT_ACCESS_TOKEN_EXAMPLES)
     token_type: str = Field(
-        description="Тип токена доступа", default="Bearer", examples=TOKEN_EXAMPLES
+        description="Тип токена доступа", default="Bearer", examples=JWT_TOKEN_TYPE_EXAMPLES
     )
 
 
@@ -94,15 +96,9 @@ class RegisterUserResponse(BaseModel):
     name: str = Field(description="Имя пользователя", max_length=255, examples=NAME_EXAMPLES)
 
 
-class AuthorizeUserRequest(BaseModel):
-    """Схема запроса авторизации пользователя."""
-
-    access_token: str = Field(description="JWT токен доступа", examples=JWT_EXAMPLES)
-
-
-class AuthorizeUserResponse(BaseModel):
+class AuthorizedUser(BaseModel):
     """Схема ответа авторизации пользователя."""
 
     id: UUID = Field(description="Идентификатор пользователя", examples=ID_EXAMPLES)
     name: str = Field(description="Имя пользователя", max_length=255, examples=NAME_EXAMPLES)
-    is_admin: bool = Field(description="Флаг админ прав", examples=[True, False])
+    is_admin: bool = Field(description="Флаг админ прав", examples=FLAG_EXAMPLES)
