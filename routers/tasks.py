@@ -70,7 +70,8 @@ async def get_task(
 
     item = DetailTaskResponse(**response.json())
     logger.success(f"Task received: {item.id}")
-    return
+
+    return item
 
 
 @router.get("/{uuid}/stream", summary="Получать обновления статуса задачи потоком", tags=["Tasks"])
