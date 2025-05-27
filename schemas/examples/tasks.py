@@ -42,3 +42,9 @@ COMMENTS_EXAMPLES = [
     "No comment.",
     "Completed manualy.",
 ]
+
+CREATED_AT_EXAMPLES = [
+    "2025-05-27 19:17:08.330670",
+    "2025-06-23 19:17:08.330670",
+    "2025-07-25 19:17:08.330670",
+]
