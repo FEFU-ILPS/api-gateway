@@ -8,6 +8,7 @@ from configs import configs
 from schemas.tasks import CreateTaskResponse, DetailTaskResponse, TasksResponse
 from service_logging import logger
 
+from .utils.embeded import Embedded, EmbeddedResponse
 from .utils.http_proxy import proxy_request, proxy_task_sse_request
 from .utils.protection import AuthorizedUser, RouteProtection
 
@@ -61,7 +62,7 @@ async def get_task(
     auth: Annotated[AuthorizedUser, Depends(protected)],
 ) -> DetailTaskResponse:
     """Получает текущую информацию по UUID указаной задачи.
-    Возвращает полную информацию о задача.
+    Возвращает полную информацию о задаче.
     """
     logger.info("Getting information about a task...")
     async with proxy_request(configs.services.manager.URL) as client:
@@ -72,6 +73,41 @@ async def get_task(
     logger.success(f"Task received: {item.id}")
 
     return item
+
+
+@router.get(
+    "/{uuid}/embedded",
+    summary="Получить актуальную информацию о задаче с дополнительными полями",
+    tags=["Tasks"],
+)
+async def get_embedded_task(
+    uuid: Annotated[UUID, Path(...)],
+    emb: Annotated[Embedded, Depends()],
+    auth: Annotated[AuthorizedUser, Depends(protected)],
+) -> EmbeddedResponse[DetailTaskResponse]:
+    """Получает текущую информацию по UUID указаной задачи.
+    Возвращает полную информацию о задаче, а также доплнительные поля.
+    """
+    embed = {}
+    entities = emb.get_entities()
+
+    logger.info("Getting information about a task...")
+    async with proxy_request(configs.services.manager.URL) as client:
+        response = await client.post(f"/{uuid}", json={"user_id": str(auth.id)})
+        response.raise_for_status()
+        item = DetailTaskResponse(**response.json())
+
+    if "text" in entities:
+        logger.info("Getting embedding text information...")
+        async with proxy_request(configs.services.texts.URL) as client:
+            response = await client.get(f"/{item.text_id}")
+            response.raise_for_status()
+            embed["text"] = response.json()
+
+    embedded_item = EmbeddedResponse[DetailTaskResponse](item=item, embedded=embed)
+    logger.success(f"Task received: {item.id}")
+
+    return embedded_item
 
 
 @router.get("/{uuid}/stream", summary="Получать обновления статуса задачи потоком", tags=["Tasks"])
