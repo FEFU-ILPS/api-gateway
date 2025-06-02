@@ -8,6 +8,7 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=8061,
         reload=configs.DEBUG_MODE,
+        proxy_headers=True,
         use_colors=True,
         date_header=True,
     )
