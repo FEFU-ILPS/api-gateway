@@ -31,9 +31,8 @@ class Status(Enum):
 class PhoneticMistake(TypedDict):
     """Типизированный словарь для описания фонетической ошибки пользователя."""
 
-    position: int
-    reference: str | None
-    actual: str | None
+    reference: dict | None
+    actual: dict | None
     type: str
 
 
